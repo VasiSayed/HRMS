@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Task</th>
+                    <th>Employee Name</th>
+                    <th>Assigned By</th>
+                    <th>Assigneed On</th>
+                    <th>Deadline</th>
+                    <th>Action</th>
+                    <th>Task Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in Tas %}
+                <tr>
+                    <td>{{ t.Task }}</td>
+                    <td>{{ t.emp.first_name }} {{ t.emp.last_name }}</td>
+                    <td>{{ t.Assigened_by.username }} Department {{t.Assigened_by.department}}</td>
+                    <td>{{ t.given_on }}</td>
+                    <td>{{ t.deadline }}</td>
+                    {% if t.status == "pending" %}
+                    <td><a href="{% url 'Start_task' t.id %}">Accept</a></td>
+                    {% else %}
+                        {% if t.status == "In Progress" %}
+                        <td><a href="{% url 'submit_task' t.id %}">Submit</a></td>
+                        {% elif t.status == "submited" %}
+                        <td><a href="{% url 'view_task' t.id %}">View</a></td>
+                        {% else %}
+                        <td><pre>  ---  </pre></td>
+                        {% endif %}
+                    {% endif %}
+                    <td>
+                        <span class="badge 
+                            {% if t.status == 'Completed' %}bg-success
+                            {% elif t.status == 'In Progress' %}bg-warning text-dark
+                            {% else %}bg-danger{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No tasks available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

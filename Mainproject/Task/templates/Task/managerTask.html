@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Task</th>
+                    <th>Employee Name</th>
+                    <th>Deadline</th>
+                    <th>Submitted On</th>
+                    <th>Comments</th>
+                    <th>Attachments</th>
+                    <th>Action</th>
+                    <th>Task Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in task %}
+                <tr>
+                    <td>{{ t.Task.Task }}</td>
+                    <td>{{ t.Task.emp.first_name }} {{ t.Task.emp.last_name }}</td>
+                    <td>{{t.Task.deadline}}</td>
+                    <td>{{ t.submitted_on }}</td>
+                    <td>{{ t.comments|default:"No comments" }}</td>
+                    <td>
+                        {% if t.Attachments %}
+                        <a href="{{ t.Attachments.url }}" target="_blank">View Attachment</a>
+                        {% else %}
+                        No Attachment
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'view_task' t.id %}">hView</a></td>
+                    <td>
+                        <span class="badge 
+                            {% if t.status == 'Approved' %}bg-success
+                            {% elif t.status == 'Rejected' %}bg-danger
+                            {% else %}bg-warning text-dark{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No tasks available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

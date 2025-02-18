@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Submit Task
+{% endblock %}
+
+{% block content %}
+<h1>{{task.Task}}</h1>
+{% if task.Attachments %}
+<img src="{{ task.Attachments.url }}" alt="" style="height: 100px;">
+{% endif %}
+<form method="post" class="form-container" enctype="multipart/form-data">
+{% csrf_token %}
+{{form.as_p}}
+<button type="submit">Submit</button>
+</form>
+{% endblock %}

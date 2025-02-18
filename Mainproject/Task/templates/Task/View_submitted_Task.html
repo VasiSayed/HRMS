@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Overview{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#f9f6f2] py-12">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <!-- Main Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-[#e8e1d6]">
+            <!-- Header -->
+            <div class="bg-[#2c3e50] text-white p-8 relative overflow-hidden">
+                <!-- Decorative border -->
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#c0935b] via-[#e8c49b] to-[#c0935b]"></div>
+                
+                <div class="relative z-10">
+                    <h1 class="text-3xl font-serif mb-6 leading-tight">{{ task.Task.Task }}</h1>
+                    <div class="flex flex-wrap gap-8 items-center text-[15px]">
+                        <div class="flex items-center bg-black/20 rounded px-5 py-2.5">
+                            <i class="fas fa-calendar-alt mr-3 text-[#e8c49b]"></i>
+                            <span class="font-medium text-[#e8c49b]">Deadline:</span>
+                            <span class="ml-2 text-gray-100">{{ task.Task.deadline }}</span>
+                        </div>
+                        <div class="flex items-center bg-black/20 rounded px-5 py-2.5">
+                            <i class="fas fa-user mr-3 text-[#e8c49b]"></i>
+                            <span class="font-medium text-[#e8c49b]">Assigned By:</span>
+                            <span class="ml-2 text-gray-100">{{ task.Task.Assigened_by }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <!-- Task Details Section -->
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-serif text-[#2c3e50] flex items-center border-b-2 border-[#e8c49b] pb-2">
+                                <i class="fas fa-tasks mr-3 text-[#c0935b]"></i>
+                                Task Details
+                            </h2>
+                        </div>
+                        {% if task.Task.Attachments %}
+                        <div class="rounded overflow-hidden shadow-md mb-4 border border-[#e8e1d6]">
+                            <div class="relative">
+                                <img src="{{ task.Task.Attachments.url }}" alt="Task Attachment" 
+                                     class="w-full max-h-[300px] object-cover">
+                                <div class="absolute inset-0 border-4 border-white opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submission Section -->
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-serif text-[#2c3e50] flex items-center border-b-2 border-[#e8c49b] pb-2">
+                                <i class="fas fa-paper-plane mr-3 text-[#c0935b]"></i>
+                                {{task.emp.username}}'s Submission
+                            </h2>
+                        </div>
+                        {% if task.Attachments %}
+                        <div class="rounded overflow-hidden shadow-md mb-6 border border-[#e8e1d6]">
+                            <div class="relative">
+                                <img src="{{ task.Attachments.url }}" alt="Submission Attachment" 
+                                     class="w-full max-h-[300px] object-cover">
+                                <div class="absolute inset-0 border-4 border-white opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="bg-[#f9f6f2] rounded p-6 border border-[#e8e1d6]">
+                            <p class="text-[15px] text-[#5d6975] mb-4 flex items-center">
+                                <i class="fas fa-clock mr-3 text-[#c0935b]"></i>
+                                <span class="font-medium">Submitted on:</span>
+                                <span class="ml-2">{{ task.submitted_on }}</span>
+                            </p>
+                            {% if comments %}
+                            <div class="mt-6 space-y-3">
+                                <h3 class="font-serif text-[#2c3e50] flex items-center text-xl border-b border-[#e8e1d6] pb-2">
+                                    <i class="fas fa-comments mr-3 text-[#c0935b]"></i>
+                                    Comments
+                                </h3>
+                                <div class="bg-white rounded p-4 border border-[#e8e1d6] mt-3">
+                                    <p class="text-[#5d6975] leading-relaxed">{{ comments }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Border -->
+            <div class="h-1 bg-gradient-to-r from-[#c0935b] via-[#e8c49b] to-[#c0935b]"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block comments %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+    <div class="container mx-auto px-4 max-w-5xl">
+        <!-- Main Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-blue-700 text-white p-8 relative overflow-hidden">
+                <!-- Decorative border -->
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-blue-400"></div>
+                
+                <div class="relative z-10">
+                    <h1 class="text-3xl font-bold mb-6 leading-tight">{{ task.Task.Task }}</h1>
+                    <div class="flex flex-wrap gap-8 items-center">
+                        <div class="flex items-center bg-white/20 rounded px-5 py-2.5">
+                            <i class="fas fa-calendar-alt mr-3 text-blue-200"></i>
+                            <span class="font-medium text-blue-100">Deadline:</span>
+                            <span class="ml-2 text-white">{{ task.Task.deadline }}</span>
+                        </div>
+                        <div class="flex items-center bg-white/20 rounded px-5 py-2.5">
+                            <i class="fas fa-user mr-3 text-blue-200"></i>
+                            <span class="font-medium text-blue-100">Assigned By:</span>
+                            <span class="ml-2 text-white">{{ task.Task.Assigened_by }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <!-- Task Details Section -->
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-semibold text-gray-800 flex items-center border-b-2 border-blue-500 pb-2">
+                                <i class="fas fa-tasks mr-3 text-blue-600"></i>
+                                Task Details
+                            </h2>
+                        </div>
+                        {% if task.Task.Attachments %}
+                        <div class="rounded-lg overflow-hidden shadow-md mb-4 border border-gray-200">
+                            <div class="relative group">
+                                <img src="{{ task.Task.Attachments.url }}" alt="Task Attachment" 
+                                     class="w-full max-h-[300px] object-cover transition-transform duration-300 group-hover:scale-105">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submission Section -->
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-semibold text-gray-800 flex items-center border-b-2 border-blue-500 pb-2">
+                                <i class="fas fa-paper-plane mr-3 text-blue-600"></i>
+                                {{task.emp.username}}'s Submission
+                            </h2>
+                        </div>
+                        {% if task.Attachments %}
+                        <div class="rounded-lg overflow-hidden shadow-md mb-6 border border-gray-200">
+                            <div class="relative group">
+                                <img src="{{ task.Attachments.url }}" alt="Submission Attachment" 
+                                     class="w-full max-h-[300px] object-cover transition-transform duration-300 group-hover:scale-105">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                            <p class="text-gray-600 mb-4 flex items-center">
+                                <i class="fas fa-clock mr-3 text-blue-600"></i>
+                                <span class="font-medium">Submitted on:</span>
+                                <span class="ml-2">{{ task.submitted_on }}</span>
+                            </p>
+                            {% if comments %}
+                            <div class="mt-6 space-y-3">
+                                <h3 class="font-semibold text-gray-800 flex items-center text-xl border-b border-gray-200 pb-2">
+                                    <i class="fas fa-comments mr-3 text-blue-600"></i>
+                                    Comments
+                                </h3>
+                                <div class="bg-white rounded-lg p-4 border border-gray-200 mt-3">
+                                    <p class="text-gray-700">{{ comments }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Border -->
+            <div class="h-1 bg-blue-500"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
