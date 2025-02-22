@@ -5,18 +5,159 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
+<style>
+    .task-container {
+        max-width: 1600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .task-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-table thead {
+        background: #2c3e50;
+        color: white;
+    }
+
+    .task-table th {
+        padding: 1rem;
+        font-weight: 500;
+        text-align: left;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .task-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #eef2f7;
+        font-size: 0.95rem;
+        vertical-align: middle;
+    }
+
+    .task-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .task-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        text-transform: capitalize;
+    }
+
+    .status-complete {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-submitted {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-progress {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-pending {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* Action buttons */
+    .action-link {
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+
+    .action-view {
+        background-color: #3498db;
+    }
+
+    .action-accept {
+        background-color: #2ecc71;
+    }
+
+    .action-submit {
+        background-color: #f1c40f;
+        color: #2c3e50;
+    }
+
+    .action-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* User info */
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .department-tag {
+        font-size: 0.8rem;
+        color: #6c757d;
+        background: #e9ecef;
+        padding: 0.2rem 0.5rem;
+        border-radius: 3px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1024px) {
+        .task-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="task-container">
+    <div class="task-table-wrapper">
+        <table class="task-table">
+            <thead>
                 <tr>
                     <th>Task</th>
                     <th>Employee Name</th>
                     <th>Assigned By</th>
-                    <th>Assigneed On</th>
+                    <th>Assigned On</th>
                     <th>Deadline</th>
                     <th>Action</th>
                     <th>Task Status</th>
+                    {% if request.user.role.RoleName == "Manager" %}
+                        <th>Submission Status</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -24,33 +165,52 @@
                 <tr>
                     <td>{{ t.Task }}</td>
                     <td>{{ t.emp.first_name }} {{ t.emp.last_name }}</td>
-                    <td>{{ t.Assigened_by.username }} Department {{t.Assigened_by.department}}</td>
+                    <td>
+                        <div class="user-info">
+                            <span>{{ t.Assigened_by.username }}</span>
+                            <span class="department-tag">{{t.Assigened_by.department}}</span>
+                        </div>
+                    </td>
                     <td>{{ t.given_on }}</td>
                     <td>{{ t.deadline }}</td>
-                    {% if t.status == "pending" %}
-                    <td><a href="{% url 'Start_task' t.id %}">Accept</a></td>
-                    {% else %}
-                        {% if t.status == "In Progress" %}
-                        <td><a href="{% url 'submit_task' t.id %}">Submit</a></td>
-                        {% elif t.status == "submited" %}
-                        <td><a href="{% url 'view_task' t.id %}">View</a></td>
-                        {% else %}
-                        <td><pre>  ---  </pre></td>
-                        {% endif %}
-                    {% endif %}
                     <td>
-                        <span class="badge 
-                            {% if t.status == 'Completed' %}bg-success
-                            {% elif t.status == 'In Progress' %}bg-warning text-dark
-                            {% else %}bg-danger{% endif %}">
+                        {% if request.user.role.RoleName == "Manager" %}
+                            <a href="{% url 'view_task' t.id %}" class="action-link action-view">View</a>
+                        {% else %}
+                            {% if t.status == "pending" %}
+                                <a href="{% url 'Start_task' t.id %}" class="action-link action-accept">Accept</a>
+                            {% elif t.status == "In Progress" %}
+                                <a href="{% url 'submit_task' t.id %}" class="action-link action-submit">Submit</a>
+                            {% elif t.status == "submited" or 'complete' %}
+                                <a href="{% url 'view_task' t.id %}" class="action-link action-view">View</a>
+                            {% else %}
+                                <span>---</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge 
+                            {% if t.status == 'complete' %}status-complete
+                            {% elif t.status == 'submited' %}status-submitted
+                            {% elif t.status == 'In Progress' %}status-progress
+                            {% else %}status-pending{% endif %}">
                             {{ t.status }}
                         </span>
                     </td>
-
+                    {% if t.Task_sub %}
+                    <td>
+                        <span class="status-badge 
+                            {% if t.Task_sub == 'Completed' %}status-complete
+                            {% elif t.Task_sub == 'In Progress' %}status-progress
+                            {% else %}status-pending{% endif %}">
+                            {{ t.Task_sub }}
+                        </span>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center">No tasks available</td>
+                    <td colspan="8" class="empty-state">No tasks available</td>
                 </tr>
                 {% endfor %}
             </tbody>

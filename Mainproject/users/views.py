@@ -1,11 +1,11 @@
 from django.shortcuts import render,redirect
-from users.forms import Registerform,loginform
+from users.forms import Registerform,loginform,RegisterManagerform
 from django.views import View
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .models import User
+from .models import User,Role
 
 
 class RegisterView(LoginRequiredMixin,View):
@@ -16,17 +16,18 @@ class RegisterView(LoginRequiredMixin,View):
             return redirect('home')
         if request.user.role.RoleName=="Manager":
             context={
-            'form': Registerform(role=request.user.role.RoleName),
+            'form': Registerform(),
             'title':"Register Form",
             'button':"Register",
             }
             return render(request,'users/form.html',context)
-        context={
-            'form': Registerform(),
-            'title':"Register Form",
-            'button':"Register",
-        }
-        return render(request,'users/form.html',context)
+        if request.user.role.RoleName=="admin" or request.user.is_superuser:
+            context={
+                'form': RegisterManagerform(),
+                'title':"Register Form",
+                'button':"Register",
+            }
+            return render(request,'users/form.html',context)
     
     def post(self,request):
         if request.user.role.RoleName not in ("admin","Manager"):
@@ -35,9 +36,24 @@ class RegisterView(LoginRequiredMixin,View):
         form=Registerform(request.POST)
         if form.is_valid():
             user=form.save(commit=False)
-            user.save()
-            messages.success(request,"Sucesfully Registered")
+            if request.user.role.RoleName=="admin" or request.user.is_superuser:
+                user.role=Role.objects.get(RoleName="Manager")
+                user.save()
+                messages.success(request,"Sucesfully Registered")
+                print('manager register')
+                return redirect('home')
+            if request.user.role.RoleName=="Manager":
+                user.role=Role.objects.get(RoleName="Employee")
+                user.department=request.user.department
+                user.manager=request.user
+                user.save()
+                print('employee register')
+                messages.success(request,"Sucesfully Registered")
+                return redirect('home')
+            logout(request)
+            messages.error(request,'not authorize ')
             return redirect('home')
+                
         context={
             'form': form,
             'title':"Register Form",
@@ -110,12 +126,15 @@ def allUsers_foradmin(request,str):
             "User":User.objects.filter(role__RoleName="Employee")
         }
         return render(request,'users/user.html',context)
-    # if str=="admin":
-    #     context={
-    #         "User":User.objects.filter(role__RoleName="admin")
-    #     }
-    #     return render(request,'users/user.html',context)
     else:
         messages.error(request,"Please Try Again")
         return redirect('home')
     
+@login_required
+def All_manager(request):
+    if request.user.role.RoleName=="admin" or request.user.is_superuser:
+        context={
+            'User':User.objects.filter(role__RoleName="Manager"),
+            'title':"All Managers"
+        }
+        return render(request,'users/user.html',context)

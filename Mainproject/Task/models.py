@@ -15,7 +15,7 @@ class Task_Assigned(models.Model):
     
     
 class Task_Submitted(models.Model):
-    Task=models.ForeignKey(Task_Assigned,on_delete=models.CASCADE)
+    Task=models.OneToOneField(Task_Assigned,on_delete=models.CASCADE,unique=True)
     emp=models.ForeignKey(User,on_delete=models.DO_NOTHING,null=False,blank=False,related_name="Task_Submmited_by")
     Attachments=models.FileField(upload_to="Submitted_Task/")
     submitted_on=models.DateTimeField(auto_now_add=True)

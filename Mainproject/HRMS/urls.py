@@ -29,6 +29,7 @@ urlpatterns = [
     path("accounts/",include("users.urls")),
     path('department/',include('department.urls')),
     path('Task/',include('Task.urls')),
+    path('leader/',include('leader.urls'))
 ]
 
 if settings.DEBUG:

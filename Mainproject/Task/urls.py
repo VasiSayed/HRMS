@@ -7,6 +7,9 @@ urlpatterns = [
     path('The-All-Task/',views.total_tak,name="All_task"),
     path('Start-Task/<int:id>/',views.accept_task,name='Start_task'),
     path('Submit-Task/<int:i>/',views.Submit_task.as_view(),name='submit_task'),
+    path('Submmitted-task/',views.manager_decision_Task,name='manager_view_task'),
     path('View-uploaded-Task/<int:pk>/',views.View_uploaded_task,name='view_task'),
-    path('Submmitted-task/',views.manager_decision_Task,name='manager_view_task')
+    path('Approve-Submitted-Task/<int:pk>/',views.ApproveTask,name="ap_task"),
+    path('reject-Submitted-Task/<int:pk>/',views.RejectTask,name="rj_task"),
+    path('Completed-Task/',views.completed_task,name='comp_task'),
 ]

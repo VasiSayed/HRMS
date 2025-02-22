@@ -9,6 +9,15 @@ class TaskFOrm(forms.ModelForm):
 
 class SubmitForm(forms.ModelForm):
     class Meta:
-        model=Task_Submitted
-        fields=['Attachments','comments']
+        model = Task_Submitted
+        fields = ['Attachments', 'comments']
+        widgets = {
+            'comments': forms.Textarea(attrs={
+                'placeholder': 'Add your comments here...',
+                'rows': 4
+            }),
+            'Attachments': forms.FileInput(attrs={
+                'accept': '*/*'  # Accept all file types
+            })
+        }
         

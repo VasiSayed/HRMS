@@ -61,13 +61,40 @@ def pending_task(request):
 
 @login_required
 def total_tak(request):
-    if request.user.role.RoleName=="Manager":
+    if request.user.role.RoleName=="admin" or request.user.is_superuser:
+        Task=Task_Assigned.objects.all()
+        for i in Task:
+            if Task_Submitted.objects.filter(Task=i).exists():
+                t=Task_Submitted.objects.get(Task=i)
+                i.Task_sub=t.status
+                i.save()
+            else:
+                i.Task_sub="Not Submited"
+                i.save()
+                
         context={
-            'Tas':Task_Assigned.objects.filter(Assigened_by=request.user),
+            'Tas':Task,
             'title':"All-Task",
         }
         return render(request,'Task/task.html',context)
-    if request.user.role.RoleName=="Employee":
+    
+    elif request.user.role.RoleName=="Manager":
+        Task=Task_Assigned.objects.filter(Assigened_by=request.user)
+        for i in Task:
+            if Task_Submitted.objects.filter(Task=i).exists():
+                t=Task_Submitted.objects.get(Task=i)
+                i.Task_sub=t.status
+                i.save()
+            else:
+                i.Task_sub="Not Submited"
+                i.save()
+                
+        context={
+            'Tas':Task,
+            'title':"All-Task",
+        }
+        return render(request,'Task/task.html',context)
+    elif request.user.role.RoleName=="Employee":
         context={
             'Tas':Task_Assigned.objects.filter(emp=request.user),
             'title':"All-Task",      
@@ -123,7 +150,7 @@ def View_uploaded_task(request,pk):
         context={
             'task':task,
         }
-        print(task)
+        print(task.Task)
         return render(request,'Task/View_submitted_Task.html',context)
     except Exception as e:
         try:
@@ -144,9 +171,73 @@ def View_uploaded_task(request,pk):
 def manager_decision_Task(request):
     manager=request.user
     task=Task_Submitted.objects.filter(Task__Assigened_by=manager)
-    print(task)
     context={
         'task':task,
         'title':"Your EMployees TasK",
     }
     return render(request,'Task/managerTask.html',context)
+
+@login_required
+def ApproveTask(request,pk):
+    if request.user.role.RoleName=="Manager":
+        task=get_object_or_404(Task_Submitted,id=pk)
+        if task:
+            task.status="Approved"
+            t=Task_Assigned.objects.get(id=task.Task.id)
+            t.status="complete"
+            t.save()
+            task.save()
+            return redirect("manager_view_task")
+        messages.error(request,"Invalid Task")
+        return redirect("manager_view_task")
+    messages.error(request,'only Manager Can perfome this task')
+    return redirect('home')
+
+def RejectTask(request,pk):
+    if request.user.role.RoleName=="Manager":
+        task=get_object_or_404(Task_Submitted,id=pk)
+        if task:
+            task.status="Rejected"
+            task.save()
+            return redirect("manager_view_task")
+        messages.error(request,"Invalid Task")
+        return redirect("manager_view_task")
+    messages.error(request,'only Manager Can perfome this task')
+    return redirect('home')
+
+
+def completed_task(request):
+    if request.user.role.RoleName=="admin" or request.user.is_superuser:
+        Task=Task_Assigned.objects.filter(status="complete")
+        for i in Task:
+                i.Task_sub="Completed"
+                i.save()
+        context={
+            'Tas':Task,
+            'title':"Approved Task",
+        }
+        return render(request,'Task/task.html',context)
+    
+    elif request.user.role.RoleName=="Manager":
+        Task=Task_Assigned.objects.filter(Assigened_by=request.user,status="complete")
+        for i in Task:
+                i.Task_sub="Completed"
+                i.save()
+        context={
+            'Tas':Task,
+            'title':"Approved Task",
+
+        }
+        return render(request,'Task/task.html',context)
+    
+    elif request.user.role.RoleName=="Employee":
+        context={
+            'Tas':Task_Assigned.objects.filter(emp=request.user,status="complete"),
+            'title':"Approved Task",
+            
+        }
+        return render(request,'Task/task.html',context)
+    else:
+        messages.error(request,'not authorze')
+        return redirect('home')
+    

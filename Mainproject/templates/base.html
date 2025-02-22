@@ -48,7 +48,7 @@
                             {% if request.user.role.RoleName != "admin" or request.user.is_superuser  %}
                             <a href="{% url 'All_task' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
                                 <i class="fas fa-sign-out-alt mr-3"></i>
-                                <span>ALL Tasks</span>
+                                <span>All Tasks</span>
                             </a>
                             {% endif %}
                             {% if request.user.role.RoleName == "admin" or request.user.is_superuser %}
@@ -59,6 +59,10 @@
                                 <a href="{% url 'UpdateDept' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
                                     <i class="fas fa-edit mr-3"></i>
                                     <span>Update Department</span>
+                                </a>
+                                <a href="{% url 'all_manager'  %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
+                                    <i class="fas fa-user-plus mr-3"></i>
+                                    <span>Managers</span>
                                 </a>
                             {% endif %}
 
@@ -76,14 +80,26 @@
                                 <span>Register</span>
                             </a>
                                     {% if request.user.role.RoleName == "Manager" %}
+                                    <a href="{% url 'Choose_Leader' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
+                                        <i class="fas fa-user-plus mr-3"></i>
+                                        <span>Create Team</span>
+                                    </a>
                                     <a href="{% url 'All_User' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
                                         <i class="fas fa-user-plus mr-3"></i>
                                         <span>Assign Task</span>
-                                    </a>
+                                    </a> 
                                     {% endif %}
                             {% endif %}
+                            {% if request.user.role.RoleName != "Employee" %}
+                                    <a href="{% url 'All_teams' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
+                                        <i class="fas fa-user-plus mr-3"></i>
+                                        <span>All Team</span>
+                                    </a>
+                            {% endif %}
                             {% if request.user.role.RoleName == "Employee" %}
-                            <a href="{% url 'Pending_task' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50"><span> Pending Task</span></a>
+                            <a href="{% url 'Pending_task' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
+                                <i class="fas fa-user-plus mr-3"></i>
+                                <span> Pending Task</span></a>
                             {% endif %}
 
                             <a href="{% url 'logout' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50">
@@ -145,13 +161,20 @@
 
 
 {% block content %}
-                {% if messages %}
-                    {% for m in messages %}
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
-                        {{ m }}
-                    </div>
-                    {% endfor %}
-                {% endif %}
+{% if messages %}
+    {% for m in messages %}
+    <div class="
+        {% if m.tags == 'error' %} bg-red-100 border-l-4 border-red-500 text-red-700 
+        {% elif m.tags == 'warning' %} bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 
+        {% elif m.tags == 'success' %} bg-green-100 border-l-4 border-green-500 text-green-700 
+        {% elif m.tags == 'info' %} bg-blue-100 border-l-4 border-blue-500 text-blue-700 
+        {% endif %}
+        p-4 mb-6">
+        {{ m }}
+    </div>
+    {% endfor %}
+{% endif %}
+
         
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     
@@ -169,10 +192,6 @@
                         </div>
                     </div>
                     {% else %}
-                            {%  if request.user.role.RoleName == "admin" or request.user.is_superuser or request.user.role.RoleName == "Manager" %}
-                                <a href="{% url 'all_userss_foradmin' 'Employee' %}">
-                            {% endif %} 
-
                     <div class="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                         <div class="flex justify-between">
                             <div>
@@ -255,7 +274,9 @@
                 {% endif %}
 
                 {% if total_task %}
+                {% if total_task != "0" %}
                 <a href="{% url 'All_task' %}">
+                {% endif %}
                     <div class="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                         <div class="flex justify-between">
                             <div>
@@ -270,7 +291,29 @@
                 </a>
                 {% endif %}
 
+        {% if Pend_task %}     
+             {% if Pend_task != "0" %}
+             <a href="{% url 'Pending_task' %}"></a>
+             {% endif %}
+             <div class="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                <div class="flex justify-between">
+                    <div>
+                        <h3 class="text-lg opacity-90">Pending Tasks</h3>
+                        <p class="text-3xl font-bold mt-2">{{ Pend_task }}</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-lg">
+                        <i class="fas fa-users text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endif %}
+
         {% if Comp_task %}
+            {% if Comp_task != "0" %}
+        <a href="{% url 'comp_task' %}">
+            
+            {% endif %}
         <div class="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6 text-white shadow-lg">
             <div class="flex justify-between">
                 <div>
@@ -282,11 +325,9 @@
                 </div>
             </div>
         </div>
+    </a>
     {% endif %}
             </div>
-
-
-
 
             
             {% if department %}

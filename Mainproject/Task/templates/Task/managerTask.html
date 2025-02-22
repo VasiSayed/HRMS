@@ -35,7 +35,11 @@
                         No Attachment
                         {% endif %}
                     </td>
-                    <td><a href="{% url 'view_task' t.id %}">hView</a></td>
+                    {% if t.status == "pending" %}
+                    <td><a href="{% url 'view_task' t.id %}">CHECK</a></td>
+                    {% else %}
+                    <td>--</td>
+                    {% endif %}
                     <td>
                         <span class="badge 
                             {% if t.status == 'Approved' %}bg-success
