@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from .models import User,Role
+from attendance.models import AttendanceDetails
 
 
 class RegisterView(LoginRequiredMixin,View):
@@ -33,12 +34,25 @@ class RegisterView(LoginRequiredMixin,View):
         if request.user.role.RoleName not in ("admin","Manager"):
             messages.error(request,"Only Admin or manager can Create New accounts")
             return redirect('home')
-        form=Registerform(request.POST)
+        
+        if request.user.role.RoleName=="admin" or request.user.is_superuser:
+            form=RegisterManagerform(request.POST)
+        if request.user.role.RoleName=="Manager":
+            form=Registerform(request.POST)
+
         if form.is_valid():
             user=form.save(commit=False)
+            shift_start = form.cleaned_data.get('shiftStartTime')
+            shift_end = form.cleaned_data.get('shiftEndTime')
             if request.user.role.RoleName=="admin" or request.user.is_superuser:
                 user.role=Role.objects.get(RoleName="Manager")
                 user.save()
+                AttendanceDetails.objects.create(
+                emp=user,
+                dept=user.department if hasattr(user, 'department') else None,
+                shiftStartTime=shift_start,
+                shiftEndTime=shift_end
+            )
                 messages.success(request,"Sucesfully Registered")
                 print('manager register')
                 return redirect('home')
@@ -47,6 +61,12 @@ class RegisterView(LoginRequiredMixin,View):
                 user.department=request.user.department
                 user.manager=request.user
                 user.save()
+                AttendanceDetails.objects.create(
+                emp=user,
+                dept=user.department if hasattr(user, 'department') else None,
+                shiftStartTime=shift_start,
+                shiftEndTime=shift_end
+            )
                 print('employee register')
                 messages.success(request,"Sucesfully Registered")
                 return redirect('home')

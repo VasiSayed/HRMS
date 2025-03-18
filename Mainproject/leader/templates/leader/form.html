@@ -1,13 +1,67 @@
 {% extends 'base.html' %}
 
 {% block title %}
-{{title}}
+    Create Team
 {% endblock %}
- 
+
+{% block style %}
+    input, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    textarea {
+        height: 100px;
+        resize: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: #bbb;
+    }
+
+{% endblock %}
+
 {% block content %}
-<form action="" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{form.as_div}}
-    <button type="submit">{{button}}</button>
-</form>
+
+{% if messages %}
+    {% for m in messages %}
+    <div class="
+        {% if m.tags == 'error' %} bg-red-100 border-l-4 border-red-500 text-red-700 
+        {% elif m.tags == 'warning' %} bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 
+        {% elif m.tags == 'success' %} bg-green-100 border-l-4 border-green-500 text-green-700 
+        {% elif m.tags == 'info' %} bg-blue-100 border-l-4 border-blue-500 text-blue-700 
+        {% endif %}
+        p-4 mb-6">
+        {{ m }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #f8f9fa;">
+    <div class="card shadow-sm p-4" style="width: 450px; border-radius: 12px;">
+        <h4 class="text-center font-weight-bold mb-4">Creating Team</h4>
+
+        <form method="post" class="needs-validation">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.Name.id_for_label }}" class="font-weight-bold">Name:</label>
+                {{ form.Name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.Description.id_for_label }}" class="font-weight-bold">Description:</label>
+                {{ form.Description }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="background-color: #007bff; font-size: 18px; padding: 10px; border-radius: 8px;">
+                Create
+            </button>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

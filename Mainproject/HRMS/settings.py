@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+TIME_ZONE = 'Asia/Kolkata'  # Set this to your actual timezone
+USE_TZ = True  # Make sure this is enabled
+
 
 # Application definition
 
@@ -41,7 +44,10 @@ INSTALLED_APPS = [
     'department',
     'Task',
     'leader',
+    'attendance',
+    'django_extensions',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -54,6 +60,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'HRMS.urls'
+
 
 import os
 TEMPLATES = [
@@ -136,3 +143,4 @@ STATICFILES_DIRS=[
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL='users.User'
+

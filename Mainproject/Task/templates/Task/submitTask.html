@@ -123,7 +123,10 @@ Submit Task
 
 <div class="main-container">
     <h1 class="task-title">{{task.Task}}</h1>
-    
+    {% if team %}
+    <h1><b>Title </b></h1>
+    <h1 class="task-title"> {{task.title}}</h1>
+    {% endif %}
     <form method="post" class="form-container" enctype="multipart/form-data">
         {% csrf_token %}
         

@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Details | HRMS{% endblock %}
+
+{% block style %}
+/* Professional HRMS Task Detail Styles */
+body {
+  background-color: #f0f2f5;
+  color: #333;
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.hrms-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.task-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.task-header {
+  background-color: #304156;
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+}
+
+.task-header-pending {
+  background-color: #4050b5;
+}
+
+.task-header-completed {
+  background-color: #2e7d32;
+}
+
+.task-header-urgent {
+  background-color: #c62828;
+}
+
+.task-status-badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.task-body {
+  padding: 1.5rem;
+}
+
+.task-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.task-meta-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.task-meta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f5f5f5;
+  margin-right: 1rem;
+}
+
+.task-meta-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #304156;
+}
+
+.task-meta-content {
+  flex: 1;
+}
+
+.task-meta-label {
+  font-size: 0.8125rem;
+  color: #757575;
+  margin-bottom: 0.25rem;
+}
+
+.task-meta-value {
+  font-weight: 500;
+  color: #333;
+}
+
+.task-description {
+  background-color: #f9fafb;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.task-description-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.task-attachment {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.task-attachment-preview {
+  position: relative;
+  height: 200px;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-attachment-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.task-attachment-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.task-attachment-preview:hover .task-attachment-overlay {
+  opacity: 1;
+}
+
+.task-attachment-button {
+  background-color: #fff;
+  color: #333;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.task-attachment-info {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.task-attachment-icon {
+  margin-right: 0.5rem;
+  color: #757575;
+}
+
+.task-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #304156;
+  color: #fff;
+  border-color: #304156;
+}
+
+.btn-primary:hover {
+  background-color: #253242;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #304156;
+  border-color: #304156;
+}
+
+.btn-outline:hover {
+  background-color: #f0f2f5;
+}
+
+.task-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #757575;
+}
+
+.task-footer-actions {
+  display: flex;
+  align-items: center;
+}
+
+.task-footer-link {
+  display: inline-flex;
+  align-items: center;
+  color: #304156;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+
+.task-footer-link svg {
+  margin-right: 0.25rem;
+}
+
+.task-footer-link:hover {
+  color: #1a2838;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .task-meta-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .task-buttons {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+{% endblock %}
+
+{% block content %}
+<div class="hrms-container py-4">
+  <div class="task-card">
+    <!-- Task Header -->
+    <div class="task-header {% if task.status == 'Pending' %}task-header-pending{% elif task.status == 'Completed' %}task-header-completed{% elif task.status == 'Urgent' %}task-header-urgent{% endif %}">
+      <h1 class="text-xl font-semibold">{{ task.Task }}</h1>
+      <div class="task-status-badge">
+        {{ task.status|default:"Pending" }}
+      </div>
+    </div>
+    
+    <!-- Task Content -->
+    <div class="task-body">
+      <!-- Metadata -->
+      <div class="task-meta-grid">
+        <div class="task-meta-item">
+          <div class="task-meta-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div class="task-meta-content">
+            <div class="task-meta-label">Due Date</div>
+            <div class="task-meta-value">{{ task.deadline }}</div>
+          </div>
+        </div>
+        
+        <div class="task-meta-item">
+          <div class="task-meta-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="task-meta-content">
+            <div class="task-meta-label">Assigned By</div>
+            <div class="task-meta-value">{{ task.Assigened_by }}</div>
+          </div>
+        </div>
+        
+        {% if task.priority %}
+        <div class="task-meta-item">
+          <div class="task-meta-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div class="task-meta-content">
+            <div class="task-meta-label">Priority</div>
+            <div class="task-meta-value">{{ task.priority }}</div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if task.created_at %}
+        <div class="task-meta-item">
+          <div class="task-meta-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="task-meta-content">
+            <div class="task-meta-label">Created On</div>
+            <div class="task-meta-value">{{ task.created_at|date:"M d, Y" }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      
+      <!-- Description -->
+      <div class="task-description">
+        <h3 class="task-description-title">Description</h3>
+        {% if task.description %}
+          <div>{{ task.description|safe }}</div>
+        {% else %}
+          <p class="text-gray-500 italic">No description provided.</p>
+        {% endif %}
+      </div>
+      
+      <div class="flex flex-col md:flex-row gap-8">
+        <div class="flex-1">
+          <!-- Action Buttons -->
+          <!-- <div class="task-buttons">
+            <button class="btn btn-primary">
+              Mark as Complete
+            </button>
+            <button class="btn btn-outline">
+              Request Extension
+            </button>
+          </div> -->
+        </div>
+        
+        <!-- Task Attachment -->
+        {% if task.Attachments %}
+        <div class="w-full md:w-1/3">
+          <div class="task-attachment">
+            <div class="task-attachment-preview">
+              <img src="{{ task.Attachments.url }}" alt="Task Attachment">
+              <div class="task-attachment-overlay">
+                <a href="{% url 'open_attachment' task.id %}" target="_blank" class="task-attachment-button">
+                  View Attachment
+                </a>
+              </div>
+            </div>
+            <div class="task-attachment-info">
+              <svg xmlns="http://www.w3.org/2000/svg" class="task-attachment-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+              <span class="text-sm">{{ task.Attachments.name|default:"Attachment" }}</span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Task Footer -->
+    <div class="task-footer">
+      <div>Last updated: {% if task.updated_at %}{{ task.updated_at|date:"M d, Y" }}{% else %}{{ task.given_on}}{% endif %}</div>
+      <!-- <div class="task-footer-actions">
+        <a href="#" class="task-footer-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Edit
+        </a>
+        <a href="#" class="task-footer-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          Share
+        </a>
+      </div> -->
+    </div>
+  </div>
+</div>
+{% endblock %}

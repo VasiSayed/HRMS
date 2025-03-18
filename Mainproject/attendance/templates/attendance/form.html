@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block style %}
+<!-- Flatpickr CSS for Calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-10">
+    <div class="container mx-auto px-4 max-w-xl">
+        <div class="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+            <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">{{ title }}</h2>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Date From Field -->
+                <div>
+                    <label for="id_date_from" class="block text-sm font-medium text-gray-700">From Date</label>
+                    <input type="date" id="id_date_from" name="date_from" 
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                        placeholder="Select a start date" required>
+                </div>
+
+                <!-- Date To Field -->
+                <div>
+                    <label for="id_date_to" class="block text-sm font-medium text-gray-700">To Date</label>
+                    <input type="date" id="id_date_to" name="date_to" 
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                        placeholder="Select an end date" required>
+                </div>
+
+                <!-- Reason Field -->
+                <div>
+                    <label for="id_reason" class="block text-sm font-medium text-gray-700">Reason</label>
+                    <textarea id="id_reason" name="reason" rows="4"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                        placeholder="Describe the reason for leave..." required></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition-all">
+                        Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<!-- Flatpickr JS for Date Picker -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        flatpickr("#id_date_from, #id_date_to", {
+            altInput: true,
+            altFormat: "F j, Y",
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+    });
+</script>
+{% endblock %}

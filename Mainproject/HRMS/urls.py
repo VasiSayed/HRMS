@@ -29,7 +29,9 @@ urlpatterns = [
     path("accounts/",include("users.urls")),
     path('department/',include('department.urls')),
     path('Task/',include('Task.urls')),
-    path('leader/',include('leader.urls'))
+    path('leader/',include('leader.urls')),
+    path('attendence/',include('attendance.urls')),
+    # path('testing/',testing_view,name='helghj'),
 ]
 
 if settings.DEBUG:

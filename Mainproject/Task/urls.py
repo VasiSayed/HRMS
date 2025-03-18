@@ -9,7 +9,12 @@ urlpatterns = [
     path('Submit-Task/<int:i>/',views.Submit_task.as_view(),name='submit_task'),
     path('Submmitted-task/',views.manager_decision_Task,name='manager_view_task'),
     path('View-uploaded-Task/<int:pk>/',views.View_uploaded_task,name='view_task'),
+    path('View-Assigned-Task/<int:pk>/',views.view_Assign_Task,name='view_task_assign'),
+    path('view-attachment/<int:task_id>/',views.open_attachment, name='open_attachment'),
     path('Approve-Submitted-Task/<int:pk>/',views.ApproveTask,name="ap_task"),
     path('reject-Submitted-Task/<int:pk>/',views.RejectTask,name="rj_task"),
     path('Completed-Task/',views.completed_task,name='comp_task'),
+    path('Team-task-assign/<int:id>/',views.Team_Task_assignment.as_view(),name="Team_task_assign"),
+    path('All-team-task/',views.allTeamassignTask,name="allTeamAssTask"),
+    path('View-Team-Subbbbbmited-task/<int:pk>/',views.View_Team_uploaded_task,name="View_Team_Tasksub"),
 ]

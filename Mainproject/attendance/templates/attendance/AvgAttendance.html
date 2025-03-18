@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block style %}
+    <style>
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        .report-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .report-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            font-size: 15px;
+            text-align: left;
+        }
+        
+        th, td {
+            padding: 14px 20px;
+            border: none;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background-color: #f7fbff;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .attendance-percentage {
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .high {
+            background-color: #e6f7ee;
+            color: #28a745;
+        }
+        
+        .medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .low {
+            background-color: #f8d7da;
+            color: #dc3545;
+        }
+        
+        .action-link {
+            display: inline-block;
+            padding: 6px 16px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .action-link:hover {
+            background-color: #2980b9;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            
+            .report-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="report-container">
+        <div class="report-header">
+            <h2 class="report-title">Average Attendance Report</h2>
+            <div class="filters">
+                <!-- You can add filter controls here in the future -->
+            </div>
+        </div>
+        
+        <div class="report-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Total Present</th>
+                        <th>Average Attendance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in avg %}
+                    <tr>
+                        <td><strong>{{ a.emp__id }}</strong></td>
+                        <td>{{ a.emp__username }}</td>
+                        <td>{{ a.total_present }}</td>
+                        <td>
+                            <span class="attendance-percentage 
+                                {% if a.avg_attendance >= 90 %}high
+                                {% elif a.avg_attendance >= 75 %}medium
+                                {% else %}low{% endif %}">
+                                {{ a.avg_attendance|floatformat:2 }}%
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'detailatten' year month a.emp__id %}" class="action-link">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-message">
+                            No attendance records found for this period
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

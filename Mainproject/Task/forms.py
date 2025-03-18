@@ -1,6 +1,5 @@
 from django import forms
-from Task.models import Task_Assigned,Task_Submitted
-from users.models import User
+from Task.models import Task_Assigned,Task_Submitted,TeamTaskAssign,TeamTaskSubmitted
 
 class TaskFOrm(forms.ModelForm):
     class Meta:
@@ -17,7 +16,26 @@ class SubmitForm(forms.ModelForm):
                 'rows': 4
             }),
             'Attachments': forms.FileInput(attrs={
-                'accept': '*/*'  # Accept all file types
+                'accept': '*/*' 
             })
         }
         
+class TeamTaskAssignForm(forms.ModelForm):
+    class Meta:
+        model = TeamTaskAssign
+        fields=['title','Attachments','deadline']
+
+
+class TeamTaskSubmitForm(forms.ModelForm):
+    class Meta:
+        model = TeamTaskSubmitted
+        fields = ['Attachments', 'comments']
+        widgets = {
+            'comments': forms.Textarea(attrs={
+                'placeholder': 'Add your comments here...',
+                'rows': 4
+            }),
+            'Attachments': forms.FileInput(attrs={
+                'accept': '*/*' 
+            })
+        }

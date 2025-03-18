@@ -1,0 +1,43 @@
+import random
+from django.utils import timezone
+from users.models import User, Role
+from attendance.models import Attendance, AttendanceDetails
+
+def mark_attendance():
+    # Exclude admin users
+    employees = User.objects.all().exclude(role__RoleName='admin')
+    
+    status_choices = ['Present'] * 75 + ['Late'] * 15 + ['Half day'] * 5 + ['Absent'] * 5
+    remark_choices = {
+        'Present': 'On Time',
+        'Late': 'Late',
+        'Half day': 'On Time',
+        'Absent': 'On Time',  # Remark doesn't matter for absent
+    }
+    
+    today = timezone.now().date()
+    
+    for emp in employees:
+        attendance_detail = AttendanceDetails.objects.filter(emp=emp).first()
+        if not attendance_detail:
+            continue  # Skip employees without attendance details
+        
+        status = random.choice(status_choices)
+        remark = remark_choices.get(status, 'On Time')
+        
+        Attendance.objects.update_or_create(
+            emp=emp,
+            date=today,
+            defaults={
+                'attendance_detail': attendance_detail,
+                'startTime': timezone.now() if status != 'Absent' else None,
+                'endTime': None if status in ['Present', 'Late'] else timezone.now(),
+                'Remark': remark,
+                'status': status,
+            }
+        )
+    
+    print("Attendance marked successfully!")
+
+# Run the function to mark attendance
+mark_attendance()

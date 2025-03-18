@@ -1,0 +1,643 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Attendance Dashboard
+{% endblock %}
+
+{% block link %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Enhanced sleek design */
+    .dashboard-container {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    .main-card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .card-header-custom {
+        background: linear-gradient(to right, #212529, #343a40);
+        padding: 1.25rem;
+        border-bottom: none;
+    }
+    
+    .stat-card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        opacity: 0.8;
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+    }
+    
+    .card-footer-custom {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-top: none;
+        padding: 0.75rem 1.25rem;
+    }
+    
+    .chart-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+    }
+    
+    .stats-list-item {
+        padding: 1rem;
+        border: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        background-color: transparent;
+        transition: background-color 0.2s ease;
+    }
+    
+    .stats-list-item:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .stats-list-item:last-child {
+        border-bottom: none;
+    }
+    
+    .custom-badge {
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+    }
+    
+    .chart-type-btn {
+        padding: 0.375rem 1rem;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+    }
+    
+    .chart-type-btn.active {
+        background-color: white;
+        color: #212529;
+        font-weight: 500;
+    }
+    
+    .dropdown-menu {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        padding: 0.5rem;
+    }
+    
+    .dropdown-item {
+        border-radius: 5px;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.2s ease;
+    }
+    
+    .btn-filter {
+        border-radius: 20px;
+        padding: 0.375rem 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .modal-content-custom {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .login-card {
+        max-width: 400px;
+        margin: 0 auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid dashboard-container">
+    {% if request.user.is_authenticated %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card main-card shadow">
+                    <div class="card-header card-header-custom text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-light">Attendance Dashboard {% if dpname %} <span class="fw-bold">({{dpname}})</span>{% endif %}</h4>
+                        <!-- Date filter dropdown -->
+                        <div class="d-flex">  
+                            {% if request.user.role.RoleName == "Manager" or  request.user.role.RoleName == "admin" %}
+                            <div class="dropdown me-2">
+
+                            <select name="year" id="year" style="background-color: black;   ">
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+
+                            <button class="btn btn-sm btn-filter btn-outline-light dropdown-toggle" type="button" id="monthFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar-alt me-1"></i> Select Month
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="monthFilterDropdown">
+                                {% for month in months %}
+                                    <li>
+                                        <a class="dropdown-item month-link" data-month="{{ month }}" 
+                                        {% if dpid %} 
+                                        href="{% url 'MonthlyAvgbydept' 2025 month dpid %}"
+                                        {% else %}
+                                        href="{% url 'MonthlyAvg' 2025 month %}"
+                                        {% endif %}>
+                                            {% if month == 1 %} January
+                                            {% elif month == 2 %} February
+                                            {% elif month == 3 %} March
+                                            {% elif month == 4 %} April
+                                            {% elif month == 5 %} May
+                                            {% elif month == 6 %} June
+                                            {% elif month == 7 %} July
+                                            {% elif month == 8 %} August
+                                            {% elif month == 9 %} September
+                                            {% elif month == 10 %} October
+                                            {% elif month == 11 %} November
+                                            {% elif month == 12 %} December
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <!-- Department filter for admins -->
+                        {% if request.user.role.RoleName == "admin" %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-filter btn-outline-light dropdown-toggle" type="button" id="deptFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-users me-1"></i> Department
+                            </button>
+                            {% if dept %}
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="deptFilterDropdown">
+                                <li><a class="dropdown-item" href="{% url 'AttenDash' %}">All Departments</a></li>
+                                {% for i in dept %}
+                                <li><a class="dropdown-item" href="{% url 'admindept_dash' i %}">{{i}}</a></li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            {% if request.user.role.RoleName == "Employee" %}
+                                <!-- Employee Dashboard -->
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-dark text-white">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Present Days</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">{{ Present_Emp }}</h2>
+                                                </div>
+                                                <i class="fas fa-calendar-check fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Out of {{ Total_Days }} days</span>
+                                            <span class="badge bg-light text-dark custom-badge">{{ present_days|floatformat:0 }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-danger text-white">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Absent Days</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">{{ absent_days }}</h2>
+                                                </div>
+                                                <i class="fas fa-calendar-times fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Out of {{ Total_Days }} days</span>
+                                            <span class="badge bg-light text-danger custom-badge">{{ absent_days|floatformat:0 }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-warning text-dark">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Late Arrivals</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">{{ Late_emp }}</h2>
+                                                </div>
+                                                <i class="fas fa-clock fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Times arrived late</span>
+                                            <span class="badge bg-dark text-warning custom-badge">{{ Late_emp|floatformat:0 }}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-secondary text-white">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Attendance Rate</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">
+                                                        {% with rate=present_days|floatformat:0|add:"0" %}
+                                                        {% widthratio rate 1 100 %}%
+                                                        {% endwith %}
+                                                    </h2>
+                                                </div>
+                                                <i class="fas fa-chart-pie fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Overall performance</span>
+                                            <a href="#" class="text-white text-decoration-none">
+                                                <span>View Details</span>
+                                                <i class="fas fa-angle-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if request.user.role.RoleName == "Manager" or request.user.role.RoleName == "admin" %}
+                                <!-- Manager Dashboard -->
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-warning text-dark">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Total Employees</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">{{ total }}</h2>
+                                                </div>
+                                                <i class="fas fa-users fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Total Employees</span>
+                                            {% if dpid %}
+                                            <a href="{% url 'EMpbydept' 'todayAll' dpid %}" class="text-dark text-decoration-none">
+                                            {% else %}
+                                            <a href="{% url 'Atteninfo' 'todayAll' %}" class="text-dark text-decoration-none">
+                                            {% endif %}
+                                                <span>View List</span>
+                                                <i class="fas fa-angle-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-dark text-white">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="text-uppercase fw-light mb-1">Present</h6>
+                                                    <h2 class="mb-0 display-5 fw-bold">{{ Present_Emp }}</h2>
+                                                </div>
+                                                <i class="fas fa-calendar-check fa-2x stat-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                            <span>Employees present today</span>
+                                            {% if dpid %}
+                                            <a href="{% url 'EMpbydept' 'todayPresent' dpid %}" class="text-white text-decoration-none">
+                                            {% else %}
+                                            <a href="{% url 'Atteninfo' 'todayPresent' %}" class="text-white text-decoration-none">
+                                            {% endif %}
+                                                <span>View List</span>
+                                                <i class="fas fa-angle-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="card stat-card bg-secondary text-white">
+                                        <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="text-uppercase fw-light mb-1">Late</h6>
+                                                <h2 class="mb-0 display-5 fw-bold">{{ Late_emp }}</h2>
+                                            </div>
+                                            <i class="fas fa-clock fa-2x stat-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                        <span>Employees arrived late</span>
+                                        {% if dpid %}
+                                        <a href="{% url 'EMpbydept' 'todayLate' dpid %}" class="text-white text-decoration-none">
+                                        {% else %}
+                                        <a href="{% url 'Atteninfo' 'todayLate' %}" class="text-white text-decoration-none">
+                                        {% endif %}
+                                            <span>View List</span>
+                                            <i class="fas fa-angle-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="card stat-card bg-danger text-white">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="text-uppercase fw-light mb-1">Absent</h6>
+                                                <h2 class="mb-0 display-5 fw-bold">{{ absent_days }}</h2>
+                                            </div>
+                                            <i class="fas fa-calendar-times fa-2x stat-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer card-footer-custom d-flex align-items-center justify-content-between">
+                                        <span>Employees absent today</span>
+                                        {% if dpid %}
+                                        <a href="{% url 'EMpbydept' 'todayAbsent' dpid %}" class="text-white text-decoration-none">
+                                        {% else %}
+                                        <a href="{% url 'Atteninfo' 'todayAbsent' %}" class="text-white text-decoration-none">
+                                        {% endif %}
+                                            <span>View List</span>
+                                            <i class="fas fa-angle-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                        
+                    <div class="row g-4 mt-2">
+                        <div class="col-lg-8">
+                            <div class="card shadow chart-container">
+                                <div class="card-header card-header-custom text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Attendance Overview</h5>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-light chart-type-btn active" id="pieChartBtn">Pie</button>
+                                        <button type="button" class="btn btn-outline-light chart-type-btn" id="barChartBtn">Bar</button>
+                                        <button type="button" class="btn btn-outline-light chart-type-btn" id="lineChartBtn">Line</button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 320px; position: relative;">
+                                        <canvas id="attendanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="card shadow chart-container h-100">
+                                <div class="card-header card-header-custom text-white">
+                                    <h5 class="mb-0">Quick Stats</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <ul class="list-group list-group-flush">
+                                        {% if request.user.role.RoleName == "Employee" %}
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>On-time Arrival Rate</span>
+                                                <span class="badge bg-dark rounded-pill custom-badge">85%</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Early Departures</span>
+                                                <span class="badge bg-warning text-dark rounded-pill custom-badge">3</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Overtime Hours</span>
+                                                <span class="badge bg-secondary rounded-pill custom-badge">12</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Remaining Leave Days</span>
+                                                <span class="badge bg-dark rounded-pill custom-badge">14</span>
+                                            </li>
+                                        {% elif request.user.role.RoleName == "Manager" %}
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Department Attendance Rate</span>
+                                                <span class="badge bg-dark rounded-pill custom-badge">{{percentage_present}}%</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <a href="{% url 'Peningleaveaccept' %}">
+                                                <span>Leave Requests Pending</span>
+                                                </a>
+                                                <span class="badge bg-warning text-dark rounded-pill custom-badge">{{leavePen}}</span>
+                                            </li>
+
+                                        {% elif request.user.role.RoleName == "admin" %}
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Overall Attendance Rate</span>
+                                                <span class="badge bg-dark rounded-pill custom-badge">{{percentage_present}}%</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Manager Leave Requests</span>
+                                                <span class="badge bg-warning text-dark rounded-pill custom-badge">{{mlEvae}}</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Departments Above 90%</span>
+                                                <span class="badge bg-secondary rounded-pill custom-badge">3</span>
+                                            </li>
+                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
+                                                <span>Average Arrival Time</span>
+                                                <span class="badge bg-dark rounded-pill custom-badge">8:45 AM</span>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="row justify-content-center py-5">
+            <div class="col-md-6">
+                <div class="card login-card shadow">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-lock fa-4x text-muted mb-4"></i>
+                        <h3 class="mb-3">Please Sign In</h3>
+                        <p class="lead mb-4">You need to be logged in to view the attendance dashboard.</p>
+                        <a href="{% url 'login' %}" class="btn btn-dark btn-lg px-4">Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Custom Date Range Modal -->
+<div class="modal fade" id="customDateModal" tabindex="-1" aria-labelledby="customDateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content modal-content-custom">
+            <div class="modal-header card-header-custom text-white">
+                <h5 class="modal-title" id="customDateModalLabel">Select Custom Date Range</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="get">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" name="start_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" name="end_date" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark">Apply Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Make sure you include these in your base tempLate_emp or at the end of your HTML -->
+<!-- Bootstrap 5 JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Font Awesome -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Chart data
+        const chartData = {
+            labels: ["Present", "Absent", "Late", "Half Day"],
+            datasets: [{
+                data: [
+                    {{ Present_Emp|default:0 }}, 
+                    {{ absent_days|default:0 }}, 
+                    {{ Late_emp|default:0 }}, 
+                    {{ half|default:0 }}
+                ],
+                backgroundColor: ["#4CAF50", "#FF5733", "#FFC107", "#3498db"],
+                borderColor: ["#fff", "#fff", "#fff", "#fff"],
+                borderWidth: 1
+            }]
+        };
+        
+        // Chart options for better responsiveness
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Create chart instance
+        const ctx = document.getElementById("attendanceChart").getContext("2d");
+        let attendanceChart = new Chart(ctx, {
+            type: "pie",
+            data: chartData,
+            options: chartOptions
+        });
+        
+        // Chart type switching functionality
+        document.getElementById("pieChartBtn").addEventListener("click", function() {
+            switchChartType("pie");
+            setActiveButton(this);
+        });
+        
+        document.getElementById("barChartBtn").addEventListener("click", function() {
+            switchChartType("bar");
+            setActiveButton(this);
+        });
+        
+        document.getElementById("lineChartBtn").addEventListener("click", function() {
+            switchChartType("line");
+            setActiveButton(this);
+        });
+        
+        function switchChartType(type) {
+            attendanceChart.destroy();
+            
+            let options = {...chartOptions};
+            
+            if (type === "bar") {
+                options.scales = {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                };
+            } else if (type === "line") {
+                // Line chart needs different dataset structure
+                chartData.datasets[0].fill = false;
+                chartData.datasets[0].tension = 0.4;
+                chartData.datasets[0].borderWidth = 3;
+                options.scales = {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                };
+            }
+            
+            // Create new chart
+            attendanceChart = new Chart(ctx, {
+                type: type,
+                data: chartData,
+                options: options
+            });
+        }
+        
+        function setActiveButton(button) {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+        }
+    });
+    
+
+    document.getElementById("year").addEventListener("change", function() {
+    let selectedYear = this.value; // Get selected year
+    let links = document.querySelectorAll(".month-link"); // Get all month links
+
+    links.forEach(link => {
+        let month = link.getAttribute("data-month"); // Get month value
+        link.href = `/attendence/Attendance-monthly/${selectedYear}/${month}/`; // Update href dynamically
+    });
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Submit Task
+{% endblock %}
+
+{% block content %}
+<style>
+    .main-container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .upload-header {
+        color: #0066FF;
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .upload-area {
+        border: 2px dashed #E6E6E6;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #FFFFFF;
+        margin-bottom: 20px;
+        cursor: pointer;
+        position: relative; /* Added for file input positioning */
+    }
+
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 15px;
+        opacity: 0.6;
+    }
+
+    .drop-text {
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .browse-text {
+        color: #0066FF;
+        text-decoration: none;
+    }
+
+    /* Modified file input styling */
+    #id_Attachments {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-list {
+        margin-top: 20px;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        background: #f8f9fa;
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .comments-area {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #E6E6E6;
+        border-radius: 5px;
+        margin: 20px 0;
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .submit-btn {
+        background: #0066FF;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .submit-btn:hover {
+        background: #0052CC;
+    }
+
+    /* Selected file preview */
+    .selected-file {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        display: none;
+    }
+</style>
+
+<div class="main-container">
+    <h1 class="task-title">{{task.Task}}</h1>
+    
+    <form method="post" class="form-container" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="upload-header">UPLOAD FILES</div>
+
+        <div class="upload-area">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#0066FF"/>
+                <path d="M7 10l5-5 5 5" stroke="#0066FF"/>
+                <path d="M12 15V3" stroke="#0066FF"/>
+            </svg>
+            <div class="drop-text">Drop your files here.</div>
+            <div>or <span class="browse-text">Browse</span></div>
+            {{ form.Attachments }}
+        </div>
+
+        <!-- Selected file preview -->
+        <div id="selectedFile" class="selected-file"></div>
+
+        <!-- Comments area -->
+        <div>
+            <label for="{{ form.comments.id_for_label }}" style="color: #333; margin-bottom: 8px; display: block;">Comments</label>
+            {{ form.comments }}
+        </div>
+
+        <button type="submit" class="submit-btn">Submit Task</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Style the comments textarea
+        const commentsArea = document.getElementById('id_comments');
+        if (commentsArea) {
+            commentsArea.classList.add('comments-area');
+            commentsArea.placeholder = 'Add your comments here...';
+        }
+
+        // File upload preview
+        const fileInput = document.getElementById('id_Attachments');
+        const selectedFileDiv = document.getElementById('selectedFile');
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFileDiv.style.display = 'block';
+                    selectedFileDiv.innerHTML = `
+                        <div class="file-item">
+                            <div class="file-info">
+                                <svg class="file-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066FF">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                                <span class="file-name">${file.name}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    selectedFileDiv.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

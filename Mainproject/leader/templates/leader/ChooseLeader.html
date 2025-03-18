@@ -19,11 +19,11 @@ body {
     line-height: 1.5;
 }
 
-/* Main Content Area */
-.main-content {
+.main-content1 {
     padding: 24px;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
+
 }
 
 .content-header {
@@ -171,7 +171,7 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .main-content {
+    .main-content1 {
         padding: 16px;
     }
 }
@@ -179,17 +179,12 @@ body {
 {% endblock %}
 
 {% block content %}
-<main class="main-content">
+<main class="main-content1">
     <header class="content-header">
         <div class="header-left">
             <h1>Choose Employee to Lead the Team</h1>
             <span class="employee-count">( {{ emp|length }} employees )</span>
         </div>
-        <!-- <div class="header-actions">
-            <div class="search-bar">
-                <input type="search" placeholder="Search employees..." class="search-input">
-            </div>
-        </div> -->
     </header>
 
     <div class="employee-grid">
@@ -207,7 +202,6 @@ body {
                 <a href="{% url 'Create_team' e.id %}" class="action-button">
                    Team Leader
                 </a>
-
             </div>
         </div>
         {% endfor %}

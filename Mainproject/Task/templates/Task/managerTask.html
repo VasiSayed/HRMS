@@ -5,10 +5,200 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
+<style>
+    .task-container {
+        max-width: 1600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .task-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .task-table thead {
+        background: linear-gradient(135deg, #3a7bd5, #2c3e50);
+        color: white;
+    }
+
+    .task-table th {
+        padding: 1.25rem 1rem;
+        font-weight: 600;
+        text-align: left;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .task-table td {
+        padding: 1.25rem 1rem;
+        font-size: 0.95rem;
+        border-top: 1px solid #f0f4f8;
+        vertical-align: middle;
+    }
+
+    .task-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .task-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .task-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .task-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status badges */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        text-transform: capitalize;
+        text-align: center;
+        min-width: 100px;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    /* Action buttons */
+    .btn {
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: inline-block;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-check {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-view {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Task title and comment styling */
+    .task-title {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .comments {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #555;
+    }
+
+    /* Date styling */
+    .date-field {
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    /* Attachment styling */
+    .attachment-link {
+        color: #3498db;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .attachment-link:hover {
+        color: #2980b9;
+        text-decoration: underline;
+    }
+
+    .no-action {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Section header */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1024px) {
+        .task-panel {
+            overflow-x: auto;
+        }
+        
+        .task-table {
+            min-width: 900px;
+        }
+    }
+</style>
+
+<div class="task-container">
+    <div class="section-header">
+        <h2 class="section-title">{{ title|default:"Submitted Tasks" }}</h2>
+    </div>
+    
+    <div class="task-panel">
+        <table class="task-table">
+            <thead>
                 <tr>
                     <th>Task</th>
                     <th>Employee Name</th>
@@ -17,41 +207,52 @@
                     <th>Comments</th>
                     <th>Attachments</th>
                     <th>Action</th>
-                    <th>Task Status</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for t in task %}
                 <tr>
-                    <td>{{ t.Task.Task }}</td>
+                    <td class="task-title">{{ t.Task.Task }}</td>
                     <td>{{ t.Task.emp.first_name }} {{ t.Task.emp.last_name }}</td>
-                    <td>{{t.Task.deadline}}</td>
-                    <td>{{ t.submitted_on }}</td>
-                    <td>{{ t.comments|default:"No comments" }}</td>
+                    <td class="date-field">{{t.Task.deadline}}</td>
+                    <td class="date-field">{{ t.submitted_on }}</td>
+                    <td>
+                        <div class="comments" title="{{ t.comments|default:'No comments' }}">
+                            {{ t.comments|default:"No comments" }}
+                        </div>
+                    </td>
                     <td>
                         {% if t.Attachments %}
-                        <a href="{{ t.Attachments.url }}" target="_blank">View Attachment</a>
+                        <a href="{{ t.Attachments.url }}" target="_blank" class="attachment-link">
+                            View Attachment
+                        </a>
                         {% else %}
-                        No Attachment
+                        <span class="no-action">No Attachment</span>
                         {% endif %}
                     </td>
-                    {% if t.status == "pending" %}
-                    <td><a href="{% url 'view_task' t.id %}">CHECK</a></td>
-                    {% else %}
-                    <td>--</td>
-                    {% endif %}
+                    <td>
+                        {% if t.status == "pending" %}
+                        <a href="{% url 'view_task' t.id %}" class="btn btn-check">Review</a>
+                        {% else %}
+                        <span class="no-action">Reviewed</span>
+                        {% endif %}
+                    </td>
                     <td>
                         <span class="badge 
-                            {% if t.status == 'Approved' %}bg-success
-                            {% elif t.status == 'Rejected' %}bg-danger
-                            {% else %}bg-warning text-dark{% endif %}">
+                            {% if t.status == 'Approved' %}status-approved
+                            {% elif t.status == 'Rejected' %}status-rejected
+                            {% else %}status-pending{% endif %}">
                             {{ t.status }}
                         </span>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center">No tasks available</td>
+                    <td colspan="8" class="empty-state">
+                        <h3>No submitted tasks available</h3>
+                        <p>There are currently no tasks submitted for review.</p>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
