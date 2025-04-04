@@ -6,6 +6,9 @@ class TaskFOrm(forms.ModelForm):
         model = Task_Assigned
         fields=['Task','Attachments','deadline']
 
+
+
+
 class SubmitForm(forms.ModelForm):
     class Meta:
         model = Task_Submitted

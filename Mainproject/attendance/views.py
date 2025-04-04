@@ -148,8 +148,8 @@ def outAttendanceView(request):
         if today_atten.Remark == "On Time":
             today_atten.Remark = "Over Time"
             messages.info(request, "Your OverTime is Marked")
-
-
+        
+        today_atten.status='Present'
         today_atten.save()
         messages.success(request, "Successfully marked Out Attendance")
         return redirect('home')
@@ -173,13 +173,30 @@ def Working_Days_Till_Now(emp):
     today=date.today().day
     month=date.today().month
     year=date.today().year
+    print(emp.username)
     week_off=emp.department.WeekOff
     total_working_days=sum(1 for i in range(1,today+1,1) if date(year,month,i).weekday() not in [6,week_off] )
     return total_working_days
 
 
+def Whole_year_working_days(emp, year):
+    try:
+        week_off = emp.department.WeekOff
+    except AttributeError:
+        week_off = emp.WeekOff
+    
+    total_working_days = sum(
+        1 for month in range(1, 13)  
+        for day in range(1, calendar.monthrange(year, month)[1] + 1)  
+        if date(year, month, day).weekday() not in [6, week_off]  
+    )
+    
+    return total_working_days
+
+
 @login_required
 def AttendanceDashBoard(request):
+    today=datetime.today()
     if request.user.role.RoleName=="Manager":
         Total_emp=User.objects.filter(manager=request.user).count()
         Present_emp = Attendance.objects.filter(emp__manager=request.user,status='Present',date=date.today()).count()
@@ -187,7 +204,11 @@ def AttendanceDashBoard(request):
         Half_Day_emp= Attendance.objects.filter(status='Half day',emp__manager=request.user,date=date.today()).count()
         months = Attendance.objects.values_list('date__month', flat=True).distinct()
         lpendng=Leave.objects.filter(emp__manager=request.user,status='Pending').count()
+        approved_leave_emp = Leave.objects.filter(emp__manager=request.user, status='Approved', date_from__lte=today, date_to__gte=today).values_list('emp', flat=True)
+        absent_employees = User.objects.filter(manager=request.user).exclude(id__in=Attendance.objects.filter(emp__manager=request.user, date=today).values_list('emp', flat=True))
+        absent_without_notice = absent_employees.exclude(id__in=approved_leave_emp)
         print(lpendng)
+
         context={
             'total':Total_emp,
             'Present_Emp' :Present_emp,
@@ -197,6 +218,7 @@ def AttendanceDashBoard(request):
             'percentage_present':(Present_emp/Total_emp)*100,
             'months':months,
             'leavePen':lpendng,
+            'abestn_no_notice':absent_without_notice
         }
         return render(request,'attendance/dashboard.html',context)
     
@@ -209,6 +231,10 @@ def AttendanceDashBoard(request):
         dept=Department.objects.values_list('dept_name',flat=True)
         months = Attendance.objects.values_list('date__month', flat=True).distinct()
         Mlpendng=Leave.objects.filter(emp__role__RoleName='Manager',status='Pending').count()
+        approved_leave_emp = Leave.objects.filter(status='Approved', date_from__lte=today, date_to__gte=today).values_list('emp', flat=True)
+        absent_employees = User.objects.exclude(id__in=Attendance.objects.filter(date=today).values_list('emp', flat=True))
+        absent_without_notice = absent_employees.exclude(id__in=approved_leave_emp)
+
         context={
             'total':Total_emp,
             'Present_Emp' :Present_emp,
@@ -219,6 +245,7 @@ def AttendanceDashBoard(request):
             'dept':dept,
             'months':months,
             'mlEvae':Mlpendng,
+            'abestn_no_notice':absent_without_notice
 
         }
         return render(request,'attendance/dashboard.html',context)
@@ -300,9 +327,6 @@ def monthlyAttendace(request,year,month):
         return render(request,'attendance/AvgAttendance.html',context)
     messages.error(request,'Manager can acces this page')
     return redirect('home')
-
-
-
 
 
 
@@ -458,10 +482,21 @@ class LeaveView(View):
         return render(request, 'attendance/form.html', context)
 
     def post(self, request):
-        form =Leaveform(request.POST)
+        form =Leaveform(request.POST,request.FILES)
         if form.is_valid():
             date_from =form.cleaned_data['date_from']
             date_to =form.cleaned_data['date_to']
+
+            if form.Leave_type == 'SL':
+               sick_leaves_count = Leave.objects.filter(
+                    emp=request.user, 
+                    Leave_type='SL',
+                    date_from__month=date.today().month
+                ).count()
+               if sick_leaves_count >= 3:
+                    messages.error(request, "You cannot apply for more than 3 sick leaves in a month.")
+                    return redirect('home')
+               
             min_adate = now().date()+timedelta(days=1)  
             if date_from < min_adate:
                 messages.error(request, "Leave request must be made at least 1 day in advance.")

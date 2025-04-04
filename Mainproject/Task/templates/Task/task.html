@@ -247,6 +247,23 @@
 <div class="task-container">
     <div class="section-header">
         <h2 class="section-title">{{ title|default:"Task Management" }}</h2>
+        <div class="header-actions">
+            {% if optiondepart %}
+                <select name="Select department" id="departmeeeeeent" onchange="filterdept()">
+                            <option value="">All Department</option>
+                    {% for to in optiondepart %}
+                        {% for t in to  %}
+                            <option value="{{t}}">{{t}}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            {% endif %}
+            <div class="search-bar">
+                <input type="search" id="search" placeholder="Search employees..." class="search-input" onkeyup="searchitbaby()">
+            </div>
+
+
+        </div>
     </div>
     
     <div class="task-panel">
@@ -267,7 +284,7 @@
             </thead>
             <tbody>
                 {% for t in Tas %}
-                <tr>
+                <tr class="empname" data-department="{{t.emp.department}}" data-name="{{ t.emp.first_name }} {{ t.emp.last_name }}</">
                     <td>
                         <div class="task-title" title="{{ t.Task }}">{{ t.Task }}</div>
                     </td>
@@ -337,4 +354,46 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+
+
+
+<script>
+
+function filterdept() {
+  const dept_choice = document.getElementById("departmeeeeeent").value;
+  const employeees = document.querySelectorAll(".empname");
+  console.log(employeees);
+  employeees.forEach((emp) => {
+    const emp_dept = emp.getAttribute("data-department");
+    if (emp_dept === dept_choice || dept_choice =="" ) {
+      emp.style.display = "table-row"
+    } else {
+      emp.style.display = "none";
+    }
+  });
+}
+
+    
+    function searchitbaby() {
+        let inn = document.getElementById('search').value.toLowerCase();
+        let employees=document.querySelectorAll('.empname')
+        employees.forEach(emp=>{
+            let name=emp.getAttribute('data-name')
+            let dept_name=emp.querySelector('.department-tag').innerText.toLowerCase()
+            if (name.includes(inn) || dept_name.includes(inn)){
+                emp.classList.remove('hidden')
+            } else {
+                emp.classList.add('hidden')
+            }
+        })
+    }
+</script>
+
+<script src="task.js">
+    
+</script>
+
 {% endblock %}

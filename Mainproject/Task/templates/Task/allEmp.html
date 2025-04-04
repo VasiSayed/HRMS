@@ -175,6 +175,10 @@ body {
         padding: 16px;
     }
 }
+
+.hidden{
+    display: none;
+}
 </style>
 {% endblock %}
 
@@ -185,16 +189,16 @@ body {
             <h1>Employee Directory</h1>
             <span class="employee-count">( {{ emp|length }} employees )</span>
         </div>
-        <!-- <div class="header-actions">
+        <div class="header-actions">
             <div class="search-bar">
-                <input type="search" placeholder="Search employees..." class="search-input">
+                <input type="search" id="search" placeholder="Search employees..." class="search-input" onkeyup="searchitbaby()">
             </div>
-        </div> -->
+        </div>
     </header>
 
     <div class="employee-grid">
         {% for e in emp %}
-        <div class="employee-card"> 
+        <div class="employee-card" data-name="{{ e.first_name }} {{ e.last_name }}"> 
             <div class="employee-avatar">
                 {{ e.first_name|first }}{{ e.last_name|first }}
             </div>
@@ -212,4 +216,29 @@ body {
         {% endfor %}
     </div>
 </main>
+{% endblock %}
+
+
+{% block script %}
+
+<script>
+    function searchitbaby() {
+        let input=document.getElementById('search').value.toLowerCase()
+        console.log(input);
+        
+        let employee=document.querySelectorAll('.employee-card')
+
+        employee.forEach(emp=>{
+            let name=emp.getAttribute('data-name').toLowerCase()
+            let dept=emp.querySelector('.department-tag').innerText.toLowerCase();
+
+            if (name.includes(input) || dept.includes(input)){
+                emp.classList.remove('hidden')
+            } else{
+                emp.classList.add('hidden')
+            }
+        })
+    }
+</script>
+
 {% endblock %}

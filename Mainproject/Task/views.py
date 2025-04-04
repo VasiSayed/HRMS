@@ -1,3 +1,4 @@
+from department.models import Department
 from django.shortcuts import render,get_object_or_404,redirect
 from users.models import User
 from django.views import View
@@ -9,15 +10,28 @@ from django.http import FileResponse, HttpResponse
 import mimetypes
 from django.db.models import Q
 from leader.models import Team,SubTaskAssigned,SubTaskSubmit
+from django.db.models import Case, When, Value, IntegerField
+from datetime import date
 # Create your views here.
 
 @login_required
 def allemp(request):
-    context={
-    "emp" : User.objects.filter((Q (role__RoleName="Employee") | Q(role__RoleName="Team Leader") ),department=request.user.department)
-    }
-    print(context)
-    return render(request,'Task/allEmp.html',context)
+    if request.user.role.RoleName not in ["admin", "Manager"]:
+        messages.error(request, 'Not authorized')
+        return redirect('home')
+    
+    if request.user.role.RoleName=="admin":
+            context={
+            "emp" : User.objects.filter((Q (role__RoleName="Employee") | Q(role__RoleName="Team Leader") ))
+            }
+            return render(request,'Task/allEmp.html',context)
+    
+    elif request.user.role.RoleName=="Manager":
+            context={
+            "emp" : User.objects.filter((Q (role__RoleName="Employee") | Q(role__RoleName="Team Leader") ),department=request.user.department)
+            }
+            print(context)
+            return render(request,'Task/allEmp.html',context)
 
 
 class Task_assignment(View):
@@ -25,7 +39,7 @@ class Task_assignment(View):
         context={
             "form":TaskFOrm(),
             "title":"Assign Task",
-             "admi":get_object_or_404(User,pk=request.user.id),
+             "admi":get_object_or_404(User,pk=id),
         }
         return render(request,'Task/assignTask.html',context)
     
@@ -34,6 +48,16 @@ class Task_assignment(View):
         form=TaskFOrm(request.POST,request.FILES)
         if form.is_valid():
             foorm=form.save(commit=False)
+            today = date.today()  
+            if foorm.deadline<=today:
+                messages.error(request, "Invalid Assign Date. The deadline must be in the future.")
+                dep=request.user.department
+                context={
+                        "form":TaskFOrm(request.POST,),
+                        "title":"Assign Task",
+                        "admi":get_object_or_404(User,pk=request.user.id),
+                }
+                return render(request,'Task/assignTask.html',context)
             foorm.Assigened_by=mana
             foorm.emp=get_object_or_404(User,pk=id)
             foorm.save()
@@ -42,7 +66,7 @@ class Task_assignment(View):
         print(TaskFOrm(request.POST))
         dep=request.user.department
         context={
-            "form":TaskFOrm(request.POST,dep=dep),
+            "form":TaskFOrm(request.POST),
             "title":"Assign Task"
         }
         messages.error(request,"Fill the Form Correcclty")
@@ -90,17 +114,17 @@ def open_attachment(request, task_id):
 @login_required
 def pending_task(request):
     if request.user.role.RoleName == "Employee" or request.user.role.RoleName == "Team Leader" :
-        if Task_Assigned.objects.filter(emp=request.user,status="pending").exists():
-            context={
-            "Tas":Task_Assigned.objects.filter(emp=request.user,status="pending"),
-            'title':"Pending Task",
+        if Task_Assigned.objects.filter(emp=request.user,status__in=["pending","In Progress"]).exists():
+            context = {
+                "Tas": Task_Assigned.objects.filter(emp=request.user,status__in=["pending", "In Progress"]),
+                'title': "Pending Task",
             }
-            return render(request,'Task/task.html',context)
+            return render(request, 'Task/task.html', context)
         messages.error(request,'No Pending Task')
         return redirect('home')
-
-
-from django.db.models import Case, When, Value, IntegerField
+    
+    messages.error(request, 'Not authorized')
+    return redirect('home')
 
 @login_required
 def total_tak(request):
@@ -118,6 +142,7 @@ def total_tak(request):
         context={
             'Tas':Task,
             'title':"All-Task",
+            'optiondepart': Department.objects.all().values_list('dept_name'),
         }
         return render(request,'Task/task.html',context)
     
@@ -135,6 +160,7 @@ def total_tak(request):
         context={
             'Tas':Task,
             'title':"All-Task",
+
         }
         return render(request,'Task/task.html',context)
         
@@ -147,6 +173,7 @@ def total_tak(request):
     
     messages.error(request,'Not Authorize to access this page')
     return redirect('home')
+
 
 @login_required
 def accept_task(request,id):
@@ -167,13 +194,18 @@ def accept_task(request,id):
         messages.error(request,"No Task Avalaible")
         return render('home')
     
+
 class Submit_task(View):
     def get(self,request,i):
         try:
                 print("finding noral task manager-emp")
                 task=get_object_or_404(Task_Assigned,pk=i)
                 if task:
-                    if request.user.role.RoleName=="Employee":
+                    if task.deadline<date.today():
+                        messages.error(request, "Cannot submit task now. Your deadline has exceeded.")
+                        return redirect('All_task')
+                    
+                    if request.user.role.RoleName in ["Employee" ,'Team Leader']:
                         print(task.Attachments)
                         context={
                             'task':task,
@@ -189,6 +221,9 @@ class Submit_task(View):
                 print("finaidn Team Task Manager-Team Leader")
                 task=get_object_or_404(TeamTaskAssign,pk=i)
                 if task:
+                    if task.deadline<date.today():
+                        messages.error(request, "Cannot submit task now. Your deadline has exceeded.")
+                        return redirect('All_task')
                     if request.user.role.RoleName=="Team Leader":
                         print(task.Attachments)
                         context={
@@ -215,7 +250,6 @@ class Submit_task(View):
             team=get_object_or_404(TeamTaskAssign,pk=i)
             teamTaskform=TeamTaskSubmitForm(request.POST,request.FILES)
             print("Normmal Team taksk Foujnd")
-
 
         if task:
             if form.is_valid():
@@ -275,10 +309,12 @@ def view_Assign_Task(request,pk):
 def View_Team_uploaded_task(request,pk):
     try:
         print('hi')
+        print(pk)
         task=get_object_or_404(TeamTaskSubmitted,Task__id=pk)
         context={
             'task':task,
         }
+        print('hi got it')
         return render(request,'Task/ViewTeamSubTask.html',context)
     except Exception as e:
         try:
@@ -330,7 +366,7 @@ def manager_decision_Task(request):
     return render(request,'Task/managerTask.html',context)
 
 @login_required
-def ApproveTask(request,pk):
+def ApproveTask(request,pk,rating):
     if request.user.role.RoleName=="Manager":
         task=False
         Teamtask=False
@@ -338,20 +374,26 @@ def ApproveTask(request,pk):
             task=get_object_or_404(Task_Submitted,id=pk)
         except:
             Teamtask=get_object_or_404(TeamTaskSubmitted,id=pk)
+
         if task:
+            print(rating)
             task.status="Approved"
+            task.score=rating  
             t=Task_Assigned.objects.get(id=task.Task.id)
             t.status="complete"
             t.save()
             task.save()
-            return redirect("manager_view_task")
+            messages.success(request,f'Sucessfulyy Approved Task of {task.emp.username}  ')
+            return redirect("home")
 
         if Teamtask:
             Teamtask.status="Approved"
+            Teamtask.score=rating
             t=TeamTaskAssign.objects.get(id=Teamtask.Task.id)
             t.status="complete"
             t.save()
             Teamtask.save()
+            messages.success(request,f'Sucessfulyy Approved Team Task of {t.Team.Name}  ')
             return redirect("allTeamAssTask")
         messages.error(request,"Invalid Task")
         return redirect("home")
@@ -359,7 +401,8 @@ def ApproveTask(request,pk):
     messages.error(request,'only Manager Can perfome this task')
     return redirect('home')
 
-def RejectTask(request,pk):
+@login_required
+def RejectTask(request,pk,rating):
     if request.user.role.RoleName=="Manager":
         task=False
         Teamtask=False
@@ -369,6 +412,7 @@ def RejectTask(request,pk):
             Teamtask=get_object_or_404(TeamTaskSubmitted,id=pk)
         if task:
             task.status="Rejected"
+            task.score=rating
             task.save()
             return redirect("manager_view_task")
         if Teamtask:
@@ -380,7 +424,7 @@ def RejectTask(request,pk):
     messages.error(request,'only Manager Can perfome this task')
     return redirect('home')
 
-
+@login_required
 def completed_task(request):
     if request.user.role.RoleName=="admin" or request.user.is_superuser:
         Task=Task_Assigned.objects.filter(status="complete")
@@ -451,7 +495,8 @@ class Team_Task_assignment(View):
         }
         messages.error(request,"Fill the Form Correcclty")
         return render(request,'Task/assignTask.html',context)
-    
+
+@login_required 
 def allTeamassignTask(request):
     if request.user.role.RoleName =="admin":
         try:

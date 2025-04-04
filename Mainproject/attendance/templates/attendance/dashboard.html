@@ -7,120 +7,255 @@ Attendance Dashboard
 {% block link %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-    /* Enhanced sleek design */
+    :root {
+        /* Color Palette */
+        --primary-color: #2563eb;
+        --secondary-color: #6366f1;
+        --background-light: #f8fafc;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+        --border-color: #e5e7eb;
+        --transition-speed: 0.3s;
+    }
+
+    * {
+        transition: all var(--transition-speed) ease;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--background-light);
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
     .dashboard-container {
-        padding: 1.5rem;
-        background-color: #f8f9fa;
+        padding: 2rem;
+        background-color: transparent;
     }
-    
+
     .main-card {
-        border: none;
-        border-radius: 10px;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--border-color);
     }
-    
+
     .card-header-custom {
-        background: linear-gradient(to right, #212529, #343a40);
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         padding: 1.25rem;
-        border-bottom: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    
+
+    .card-header-custom h4, 
+    .card-header-custom h5 {
+        margin: 0;
+        color: white;
+        font-weight: 600;
+    }
+
     .stat-card {
-        border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        height: 100%;
+        transform: translateY(0);
+        transition: 
+            transform var(--transition-speed) ease,
+            box-shadow var(--transition-speed) ease;
     }
-    
+
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-10px);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+    } */
+
+     .stat-card .card-body {
+        position: relative;
+        z-index: 1;
     }
-    
+
     .stat-icon {
-        opacity: 0.8;
-        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+        opacity: 0.7;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
     }
-    
-    .card-footer-custom {
-        background-color: rgba(0, 0, 0, 0.1);
-        border-top: none;
-        padding: 0.75rem 1.25rem;
-    }
-    
+
     .chart-container {
         background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        padding: 1rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
     }
-    
-    .stats-list-item {
-        padding: 1rem;
-        border: none;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        background-color: transparent;
+
+    .chart-type-btn {
+        margin: 0 0.25rem;
+        border-radius: 20px;
+        padding: 0.375rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .chart-type-btn.active {
+        background-color: white;
+        color: var(--primary-color);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .absent-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .absent-table thead {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .absent-table th {
+        color: white !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .absent-table tbody tr {
         transition: background-color 0.2s ease;
     }
-    
+
+    .absent-table tbody tr:hover {
+        background-color: rgba(37, 99, 235, 0.05);
+    }
+
+    .stats-list-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+    }
+
     .stats-list-item:hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
-    
-    .stats-list-item:last-child {
-        border-bottom: none;
-    }
-    
+
     .custom-badge {
-        font-weight: 500;
-        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+        padding: 0.375rem 0.75rem;
         border-radius: 20px;
     }
-    
-    .chart-type-btn {
-        padding: 0.375rem 1rem;
-        border-radius: 20px;
-        transition: all 0.2s ease;
-    }
-    
-    .chart-type-btn.active {
-        background-color: white;
-        color: #212529;
-        font-weight: 500;
-    }
-    
-    .dropdown-menu {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        padding: 0.5rem;
-    }
-    
-    .dropdown-item {
-        border-radius: 5px;
-        padding: 0.5rem 1rem;
-        transition: background-color 0.2s ease;
-    }
-    
-    .btn-filter {
-        border-radius: 20px;
-        padding: 0.375rem 1rem;
-        transition: all 0.2s ease;
-    }
-    
-    .modal-content-custom {
-        border: none;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
+
     .login-card {
         max-width: 400px;
         margin: 0 auto;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .modal-content-custom {
+        border-radius: 16px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+
+        .chart-type-btn {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    } 
+
+    /* Responsive and modern styling for year select dropdown */
+select#year {
+    /* Typography */
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+
+    /* Background and Color */
+    background-color: #2c3e50;
+    background-image: linear-gradient(to bottom, #2c3e50, #34495e);
+    border: 2px solid #34495e;
+    border-radius: 6px;
+
+    /* Padding and Sizing */
+    padding: 8px 12px;
+    min-width: 100px;
+    height: 40px;
+
+    /* Cursor and Interactions */
+    cursor: pointer;
+    appearance: none; /* Removes default browser styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    /* Transition for smooth hover effect */
+    transition: all 0.3s ease;
+
+    /* Background arrow (optional, requires positioning) */
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position-x: 95%;
+    background-position-y: center;
+}
+
+Hover Effects
+select#year:hover {
+    background-color: #34495e;
+    border-color: #2980b9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Focus State */
+select#year:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+}
+
+/* Dropdown Options Styling (for WebKit browsers) */
+select#year option {
+    background-color: #2c3e50;
+    color: #ffffff;
+    padding: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    select#year {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+    /* Dark Mode Soft Enhancements */
+    .bg-dark {
+        background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+    }
+
+    .bg-secondary {
+        background: linear-gradient(135deg, #7f8c8d, #95a5a6) !important;
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #f39c12, #f1c40f) !important;
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
     }
 </style>
 {% endblock %}
@@ -408,24 +543,8 @@ Attendance Dashboard
                                 </div>
                                 <div class="card-body p-0">
                                     <ul class="list-group list-group-flush">
-                                        {% if request.user.role.RoleName == "Employee" %}
-                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
-                                                <span>On-time Arrival Rate</span>
-                                                <span class="badge bg-dark rounded-pill custom-badge">85%</span>
-                                            </li>
-                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
-                                                <span>Early Departures</span>
-                                                <span class="badge bg-warning text-dark rounded-pill custom-badge">3</span>
-                                            </li>
-                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
-                                                <span>Overtime Hours</span>
-                                                <span class="badge bg-secondary rounded-pill custom-badge">12</span>
-                                            </li>
-                                            <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
-                                                <span>Remaining Leave Days</span>
-                                                <span class="badge bg-dark rounded-pill custom-badge">14</span>
-                                            </li>
-                                        {% elif request.user.role.RoleName == "Manager" %}
+
+                                        {% if request.user.role.RoleName == "Manager" %}
                                             <li class="list-group-item stats-list-item d-flex justify-content-between align-items-center">
                                                 <span>Department Attendance Rate</span>
                                                 <span class="badge bg-dark rounded-pill custom-badge">{{percentage_present}}%</span>
@@ -459,6 +578,41 @@ Attendance Dashboard
                                 </div>
                             </div>
                         </div>
+<div class="card shadow chart-container mt-4">
+    <div class="card-header card-header-custom text-white">
+        <h5 class="mb-0">Employees Absent Without Notice</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table absent-table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Department</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            {% if abestn_no_notice %}
+            <tbody>
+                {% for i in abestn_no_notice %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ i.username }}</td>
+                    <td>{{ i.first_name }} {{ i.last_name }}</td>
+                    <td>{{ i.department.dept_name }}</td>
+                    <td>{{ i.contact_details }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-row text-center">No Employees Absent Without Notice</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% endif %}
+        </table>
+    </div>
+</div>
                     </div>
                 </div>
             </div>

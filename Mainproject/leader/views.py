@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.decorators  import login_required
 from .models  import SubTaskAssigned,SubTaskSubmit
+from datetime import date
 # Create your views here.
 
 @login_required
@@ -21,13 +22,16 @@ def choose_Leader(request):
         messages.info(request,'FIrst Create EMpolyee Then mak ea team')
         return redirect('home')
     else:
-        messages.error(request,'Not authorized')
+        messages.error(request, 'You are not authorized to perform this action.')
         return redirect('home')
 
 
 
 class CreateTeam(View):
     def get(self,request,pk):
+        if not User.objects.filter(pk=pk).exists():
+            messages.error(request, "Employee does not exist.")
+            return redirect('home')
         context={
             'form':CreateTeamFOrm(),
             'title':"Creating Team",
@@ -38,6 +42,9 @@ class CreateTeam(View):
     def post(self,request,pk):
         form=CreateTeamFOrm(request.POST)
         if form.is_valid():
+            if not User.objects.filter(pk=pk).exists():
+                messages.error(request, "Employee does not exist.")
+                return redirect('home')
             Foram=form.save(commit=False)
             Foram.dept=request.user.department
             try:
@@ -56,7 +63,7 @@ class CreateTeam(View):
             'title':"Creating Team",
             'button':"Create",
         }
-        messages.error(request,'FIll the formm correctly')
+        messages.error(request, 'Please fill out the form correctly.')
         return render(request,'leader/form.html',context)
                 
 @login_required
@@ -98,10 +105,77 @@ def Allteams(request):
         messages.info(request,"No active Team Make it first")
         return redirect('home')
     
+    elif request.user.role.RoleName=="Employee":
+        if Team.objects.filter(id__in=Team_Member.objects.filter(Emp=request.user, Team__active=True).values_list('Team', flat=True)).exists():
+            context={
+                'team':Team.objects.filter(id__in=Team_Member.objects.filter(Emp=request.user, Team__active=True).values_list('Team', flat=True)),
+                'head':f"Your All Teams",
+                'title':"Team-page",
+                'add':'Yes'
+
+            }
+            return render(request,'leader/Team.html',context)
+        messages.info(request,"You are not a memeber of active Team")
+        return redirect('home')
     else:
         messages.error(request,'not authorze you are emploue')
         return redirect('home')
     
+
+@login_required
+def Nonandallteams(request):
+    if request.user.role.RoleName=="admin" or request.user.is_superuser:
+        if Team.objects.all().exists():
+            context={
+                'team':Team.objects.all().order_by('-active'),
+                'head':f"All Teams",
+                'title':"Team-page"
+            }
+            return render(request,'leader/Team.html',context)
+        messages.info(request,"No active Team Make it first")
+        return redirect('home')
+
+    elif request.user.role.RoleName=="Manager":
+        if Team.objects.filter(Created_by=request.user).exists():
+            context={
+                'team':Team.objects.filter(Created_by=request.user),
+                'head':f"All Teams Created By {request.user.username}",
+                'title':"Team-page"
+
+            }
+            return render(request,'leader/Team.html',context)
+        
+        messages.info(request,"No active Team Create One first")
+        return redirect('home')
+    
+    elif request.user.role.RoleName=="Team Leader":
+        if Team.objects.filter(leader=request.user).exists():
+            context={
+                'team':Team.objects.filter(leader=request.user),
+                'head':f"Your All Teams",
+                'title':"Team-page",
+                'add':'Yes'
+
+            }
+            return render(request,'leader/Team.html',context)
+        messages.info(request,"No active Team Make it first")
+        return redirect('home')
+    
+    elif request.user.role.RoleName=="Employee":
+        if Team.objects.filter(id__in=Team_Member.objects.filter(Emp=request.user).values_list('Team', flat=True)).exists():
+            context={
+                'team':Team.objects.filter(id__in=Team_Member.objects.filter(Emp=request.user).values_list('Team', flat=True)),
+                'head':f"Your All Teams",
+                'title':"Team-page",
+                'add':'Yes'
+
+            }
+            return render(request,'leader/Team.html',context)
+        messages.info(request,"You are not a memeber of active Team")
+        return redirect('home')
+    else:
+        messages.error(request,'not authorze you are emploue')
+        return redirect('home')
 
 # @login_required
 # def SelectTeams(request):
@@ -151,17 +225,14 @@ def add_team_members(request,task):
         print(selected_employee_ids)
         team = get_object_or_404(Team, id=task)
         print('team found')
-        # Ensure only team leaders can add members
         if request.user != team.leader:
             messages.error(request,'only Team Leader can perfome this task')
             return redirect("home")  
         print("gond to check emp")
-        # Add selected employees to the team
         for emp_id in selected_employee_ids:
             emp = get_object_or_404(User, id=emp_id)
             print(" emp found")
             
-            # Ensure employee belongs to the same department
             if emp.role.RoleName == "Employee" and emp.department == team.dept:
                 Team_Member.objects.get_or_create(Team=team, Emp=emp)
         messages.success(request,'sucesfuully aded a team')
@@ -173,19 +244,21 @@ def add_team_members(request,task):
 
 @login_required
 def ViewTeammember(request,id):
-        # try:
+        try:
+            TEamm=Team.objects.get(id=id)
             team=Team_Member.objects.filter(Team__id=id)
-            context={
+        except  Exception:
+            messages.error(request,'No Team')
+            return redirect('All_teams')
+        context={
                 'team':team,
                 'title':"All Members",
                 'Action':"Assign Task",
-                'team_i':id
+                'team_i':id,
+                'active':TEamm.active
 
             }
-            return render(request,'leader/TeamMember.html',context)
-        # except Exception:
-        #     messages.error(request,'No Team')
-        #     return redirect('All_teams')
+        return render(request,'leader/TeamMember.html',context)
 
 
 class AssignedSubTask(View):
@@ -241,14 +314,16 @@ def deleteTeam(request,id):
     if team:
             if Team.objects.filter(leader=team.leader,active=True).count() > 1:
                 team.active=False
-                team.save()
-                messages.info(request,"Succefullly Deleted")
-                return redirect('All_teams')
-            Us=User.objects.get(pk=team.leader.id)
-            Us.role=Role.objects.get(RoleName="Employee")
-            team.active=False
+            else:
+                Us=User.objects.get(pk=team.leader.id)
+                Us.role=Role.objects.get(RoleName="Employee")
+                team.active=False
+                Us.save()
+            team_member=Team_Member.objects.filter(Team=team) 
+            for i in team_member:
+                i.Emp=False
+                i.save()
             team.save()
-            Us.save()
             messages.info(request,"Succefullly Deleted")
             return redirect('All_teams')
     messages.error(request,'Invalid Teams')
@@ -286,6 +361,37 @@ def AllSubTaskAssign(request):
         return render(request,'leader/SubTask.html',context)
     return redirect(request,"Not Authorize to access this page")
 
+
+def PendingSubTaskAssign(request):
+    if request.user.role.RoleName =="Team Leader":
+        team=SubTaskAssigned.objects.filter(Team__leader=request.user,Team__active=True,status='pending')
+        for i in team:
+            if SubTaskSubmit.objects.filter(subtask=i).exists():
+                t=SubTaskSubmit.objects.get(subtask=i)
+                print("got t")
+                print(t)
+                i.Task_sub=t.status
+                i.save()
+            else:
+                i.Task_sub="Not Submited"
+                i.save()
+        context={
+            'Task':team,
+            'title':f"Task Assigned to Team By {request.user.username} ",
+        }
+        return render(request,'leader/SubTask.html',context)
+    if request.user.role.RoleName =="Employee":
+        team=SubTaskAssigned.objects.filter(emp=request.user,Team__active=True,status='pending')
+        context={
+            'Task':team,
+            'title':f"Task Assigned to You {request.user.username}",
+        }
+        return render(request,'leader/SubTask.html',context)
+    return redirect(request,"Not Authorize to access this page")
+
+
+
+
 @login_required
 def accept_Team_Sub_task(request,id):
     # try:
@@ -309,6 +415,9 @@ class Team_Sub_Submit_task(View):
     def get(self,request,i):
         task=get_object_or_404(SubTaskAssigned,pk=i)
         if task:
+            if task.deadline<date.today():
+                messages.error(request, "Cannot submit task now. Your deadline has exceeded.")
+                return redirect('All_task')
             print(task.Attachments)
             context={
                 'task':task,
@@ -374,11 +483,12 @@ def View_uploaded_Asign_task(request,pk):
                   
 
 @login_required
-def ApproveTeamSubTask(request,pk):
+def ApproveTeamSubTask(request,pk,rating):
     if request.user.role.RoleName=="Team Leader":
         task=get_object_or_404(SubTaskSubmit,id=pk)
         if task:
             task.status="Approved"
+            task.score=rating
             t=SubTaskAssigned.objects.get(id=task.subtask.id)
             t.status="complete"
             t.save()
@@ -389,11 +499,12 @@ def ApproveTeamSubTask(request,pk):
     messages.error(request,'only Manager Can perfome this task')
     return redirect('home')
 
-def RejectTeamSubTask(request,pk):
+def RejectTeamSubTask(request,pk,rating):
     if request.user.role.RoleName=="Team Leader":
         task=get_object_or_404(SubTaskSubmit,id=pk)
         if task:
             task.status="Rejected"
+            task.score=rating
             task.save()
             return redirect("AllsubTaskAss")
         messages.error(request,"Invalid Task")

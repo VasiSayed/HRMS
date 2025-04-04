@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}
+{{title}}
+{% endblock %}
+
+{% block style %}
+ .table-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-top: 30px;
+}
+
+.table-card-header {
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.table-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.table-card-body {
+    padding: 0;
+    overflow-x: auto;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid transparent;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: var(--success-color);
+    color: #155724;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: var(--warning-color);
+    color: #856404;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: var(--danger-color);
+    color: #721c24;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: var(--info-color);
+    color: #0c5460;
+}
+
+/* Updated Button Styling */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease-in-out;
+    border: none;
+}
+
+.btn-edit {
+    background-color: #17a2b8;
+    color: white;
+    padding: 10px 15px;
+}
+
+.btn-edit:hover {
+    background-color: #138496;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+{% endblock %}
+
+{% block content %}
+{% if department %}
+<div class="table-card">
+    <div class="table-card-header">
+        <h2 class="table-card-title">Departments</h2>
+        <a href="{% url 'Createdepart' %}" class="btn btn-create">
+            <i class="fas fa-plus"></i> Add Department
+        </a>
+    </div>
+    <div class="table-card-body">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Department Name</th>
+                        <th>Description</th>
+                        <th>Created On</th>
+                        <th class="actions-column">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in department %}
+                    <tr>
+                        <td class="serial-number">{{ d.sr }}</td>
+                        <td class="dept-name">{{ d.dept_name }}</td>
+                        <td class="description">
+                            <div class="text-truncate" title="{{ d.description }}">{{ d.description }}</div>
+                        </td>
+                        <td class="date-cell">{{ d.create_at }}</td>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <a href="{% url 'ShiftempDelete' fromm d.dept_id %}" 
+                                   class="btn-action btn-edit"  style=" width: 100%;"
+                                   title="Edit Department">
+                                     Shift To
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-table">
+                            <div class="empty-state">
+                                <i class="fas fa-building empty-icon"></i>
+                                <p>No departments found</p>
+                                <a href="{% url 'Createdepart' %}" class="btn btn-create-empty">
+                                    <i class="fas fa-plus"></i> Add Your First Department
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -251,7 +251,9 @@
                             <th>Application Date</th>
                             <th>From</th>
                             <th>To</th>
+                            <th>Documents</th>
                             <th>Reason</th>
+                            <th>Leave Type</th>
                             <th>Status</th>
                             {% if mana or admi %}
                                 <th>Action</th>
@@ -266,7 +268,16 @@
                                 <td class="date-cell">{{ l.applied_on }}</td> 
                                 <td class="date-cell">{{ l.date_from }}</td> 
                                 <td class="date-cell">{{ l.date_to }}</td> 
+                                {% if l.document %}
+                                <td>Have Document</td>
+                                {% else %}
+                                <td class="date-cell">No document</td> 
+                                {% endif %}
+
                                 <td class="reason-cell" title="{{ l.reason }}">{{ l.reason }}</td> 
+                                <td class="date-cell">
+                                    {{l.Leave_type}}
+                                </td>
                                 <td>
                                     <span class="status-badge 
                                         {% if l.status == 'Approved' %}status-approved

@@ -612,7 +612,7 @@ body {
                     </svg>
                     View Members
                 </a>
-                
+            {% if t.active %}
                 {% if add == 'Yes' and request.user.role.RoleName == 'Team Leader' %}
                 <a href="{% url 'team_member_emp' t.id %}" class="action-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -621,7 +621,7 @@ body {
                     Add Members
                 </a>
                 {% endif %}
-                
+           
                 {% if request.user.role.RoleName == 'Manager'  %}
                 <a href="/Task/Team-task-assign/{{ t.id }}/" class="action-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -639,7 +639,7 @@ body {
                     Assign Task
                 </a>
                 {% endif %}
-                
+            
                 {% if request.user.role.RoleName == 'Manager' or request.user.role.RoleName == 'admin' %}
                 <a href="{% url 'DeleteTeamurl' t.id %}" class="action-button danger">
                     <svg xmlns="http://www.w3.org/2000/svg" class="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -648,6 +648,7 @@ body {
                     Delete
                 </a>
                 {% endif %}
+             {% endif %}
             </div>
         </div>
         {% endfor %}

@@ -1,0 +1,711 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="performance-dashboard container-fluid px-4 py-5">
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="display-5 text-center mb-2 fw-bold gradient-text">Employee Performance Overview</h1>
+            <p class="text-center text-muted lead">Track performance metrics and employee rankings</p>
+        </div>
+    </div>
+
+    <div class="top-performers-section mb-5">
+        <h3 class="section-title mb-4"><span>Top Performers</span></h3>
+        <div class="row g-4">
+            {% for employee, performance in employee_performance.items|slice:":3" %}
+            {% if forloop.counter <= 3 %}
+            <div class="col-md-4">
+                <div class="card performance-card border-0 shadow h-100 {% if forloop.counter == 1 %}gold-card{% elif forloop.counter == 2 %}silver-card{% elif forloop.counter == 3 %}bronze-card{% endif %}">
+                    <div class="card-header bg-gradient-primary text-white py-3 d-flex align-items-center justify-content-between">
+                        <h4 class="card-title mb-0 fw-bold">
+                            {% if request.user.username == employee %}
+                                <i class="fas fa-user-circle me-2"></i>You
+                            {% else %}
+                                {{ employee }}
+                            {% endif %}
+                        </h4>
+                        <div class="rank-badge">
+                            <span class="badge {% if forloop.counter == 1 %}bg-warning{% elif forloop.counter == 2 %}bg-light text-dark{% elif forloop.counter == 3 %}bg-copper text-white{% endif %} rounded-pill">
+                                {% if forloop.counter == 1 %}
+                                    <i class="fas fa-trophy me-1"></i>
+                                {% elif forloop.counter == 2 %}
+                                    <i class="fas fa-medal me-1"></i>
+                                {% elif forloop.counter == 3 %}
+                                    <i class="fas fa-award me-1"></i>
+                                {% endif %}
+                                Rank #{{ forloop.counter }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="performance-metrics text-center">
+                            <div class="mb-4">
+                                <div class="circular-chart mx-auto" style="width: 150px; height: 150px;">
+                                    <svg viewBox="0 0 36 36" class="circular-chart-svg">
+                                        <path class="circle-bg" d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none" stroke="#eee" stroke-width="3"/>
+                                        <path class="circle {% if performance.progress_percentage >= 80 %}high-performance{% elif performance.progress_percentage >= 60 %}mid-performance{% else %}low-performance{% endif %}" 
+                                            stroke-dasharray="{{ performance.progress_percentage }}, 100" 
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none" stroke-width="3.2"/>
+                                        <text x="18" y="18.5" class="percentage-label" text-anchor="middle">
+                                            {{ performance.progress_percentage|floatformat:0 }}%
+                                        </text>
+                                        <text x="18" y="23" class="percentage-text" text-anchor="middle">
+                                            Score
+                                        </text>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="performance-details">
+                                <div class="score-display mb-3">
+                                    <span class="score-achieved">{{ performance.total_achieved_score }}</span>
+                                    <span class="score-divider">/</span>
+                                    <span class="score-possible">{{ performance.total_possible_score }}</span>
+                                </div>
+                                <div class="stats-row">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ performance.total_Task_sub_score }}</div>
+                                        <div class="stat-label">Tasks</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ performance.total_attendance_score }}</div>
+                                        <div class="stat-label">Attendance</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ performance.overtime_score }}</div>
+                                        <div class="stat-label">Overtime</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="employee-performance-section">
+        <h3 class="section-title mb-4"><span>Performance Details</span></h3>
+        <div class="card border-0 shadow">
+            <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Detailed Performance Metrics</h5>
+            </div>
+            {% if request.user.role.RoleName == "Manager" or request.user.role.RoleName == "admin" %}
+            <!-- Filter controls - New section -->
+            <div class="card-body pb-0">
+                <div class="filter-controls mb-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small"><i class="fas fa-filter me-1"></i>Filter by Month</label>
+                            
+                            <select class="form-select form-select-sm" id="monthFilter">
+                                <option value="all">All Months</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted small"><i class="fas fa-calendar-alt me-1"></i>Filter by Year</label>
+                            <select class="form-select form-select-sm" id="yearFilter">
+                                <option value="all">All Years</option>
+                                {% for a in allyears %}
+                                    <option value="{{a}}">{{a}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-primary btn-sm" id="applyFilters">
+                                <i class="fas fa-check me-1"></i>Apply Filters
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm ms-2" id="resetFilters">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-tags mb-3" id="activeFilters" style="display: none;">
+                    <div class="d-flex flex-wrap gap-2">
+                    </div>
+                </div>
+            </div>
+
+            {% endif %}
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-borderless mb-0 performance-table" id="performanceTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center sticky-column">
+                                    <div class="d-flex align-items-center">
+                                        Employee
+                                        <span class="sort-icon ms-1"><i class="fas fa-sort text-muted"></i></span>
+                                    </div>
+                                </th>
+                                <th class="text-center">Task Assigned</th>
+                                <th class="text-center">Task Submitted</th>
+                                <th class="text-center">Team Task Assigned</th>
+                                <th class="text-center">Team Task Submitted</th>
+                                <th class="text-center">Attendance</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Late</th>
+                                <th class="text-center">Overtime</th>
+                                <th class="text-center">Paid Leave</th>
+                                <th class="text-center">Casual Leave</th>
+                                <th class="text-center">UL Deduction</th>
+                                <th class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        Total Achieved
+                                        <span class="sort-icon ms-1"><i class="fas fa-sort text-muted"></i></span>
+                                    </div>
+                                </th>
+                                <th class="text-center">Total Possible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee, performance in employee_performance.items %}
+                            <tr class="{% if forloop.counter <= 3 %}highlight-row{% endif %}" data-month="{{ performance.month|default:'all' }}" data-year="{{ performance.year|default:'all' }}">
+                                <td class="text-center fw-bold sticky-column employee-name">
+                                    {% if request.user.username == employee %}
+                                        <span class="current-user">
+                                            <i class="fas fa-user-circle me-1"></i>You
+                                        </span>
+                                    {% else %}
+                                        {{ employee }}
+                                    {% endif %}
+                                    {% if forloop.counter <= 3 %}
+                                        <span class="ranking-icon">
+                                            {% if forloop.counter == 1 %}
+                                                <i class="fas fa-trophy text-warning"></i>
+                                            {% elif forloop.counter == 2 %}
+                                                <i class="fas fa-medal text-secondary"></i>
+                                            {% elif forloop.counter == 3 %}
+                                                <i class="fas fa-award text-copper"></i>
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ performance.total_Task_assign_score }}</td>
+                                <td class="text-center">{{ performance.total_Task_sub_score }}</td>
+                                <td class="text-center">{{ performance.total_teamtask_assign_score }}</td>
+                                <td class="text-center">{{ performance.total_teamtask_submited_score }}</td>
+                                <td class="text-center">{{ performance.total_attendance_score }}</td>
+                                <td class="text-center">{{ performance.present_score }}</td>
+                                <td class="text-center">{{ performance.late_score }}</td>
+                                <td class="text-center">{{ performance.overtime_score }}</td>
+                                <td class="text-center">{{ performance.paid_leave_score }}</td>
+                                <td class="text-center">{{ performance.casual_leave_score }}</td>
+                                <td class="text-center">{{ performance.unpaid_leave_deduction }}</td>
+                                <td class="text-center fw-bold text-primary">
+                                    <div class="score-pill">
+                                        {{ performance.total_achieved_score }}
+                                    </div>
+                                </td>
+                                <td class="text-center text-muted">{{ performance.total_possible_score }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+            
+            <div class="card-footer bg-light py-3">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("applyFilters").addEventListener("click", function () {
+        let month = document.getElementById("monthFilter").value;
+        let year = document.getElementById("yearFilter").value;
+
+
+        if (month === "all") month = 0;
+        if (year === "all") year = 0;
+
+       
+        let url = `/performance/filtered-emp-performance/${month}/${year}/`;
+
+        window.location.href = url;
+    });
+
+    document.getElementById("resetFilters").addEventListener("click", function () {
+        document.getElementById("monthFilter").value = "all";
+        document.getElementById("yearFilter").value = "all";
+    });
+</script>
+
+{% endblock %}
+
+
+
+
+{% block style %}
+<style>
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #1abc9c;
+    --dark-accent: #16a085;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --success-color: #27ae60;
+    --info-color: #3498db;
+    --copper-color: #cd7f32;
+    --gold-color: #ffd700;
+    --silver-color: #c0c0c0;
+}
+
+body {
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Gradient text for heading */
+.gradient-text {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Section titles with horizontal line */
+.section-title {
+    display: flex;
+    align-items: center;
+    color: var(--primary-color);
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    position: relative;
+}
+
+.section-title span {
+    background: #f8f9fa;
+    padding: 0 1rem 0 0;
+    z-index: 1;
+}
+
+.section-title:after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(44,62,80,0.5) 0%, rgba(44,62,80,0.1) 100%);
+    margin-left: 0.5rem;
+}
+
+/* Performance Cards */
+.performance-card {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.performance-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+}
+
+.gold-card {
+    border-top: 4px solid var(--gold-color) !important;
+}
+
+.silver-card {
+    border-top: 4px solid var(--silver-color) !important;
+}
+
+.bronze-card {
+    border-top: 4px solid var(--copper-color) !important;
+}
+
+/* Background gradients */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.bg-copper {
+    background-color: var(--copper-color);
+}
+
+/* Circular progress chart */
+.circular-chart-svg {
+    max-width: 100%;
+    height: auto;
+    transform: rotate(-90deg);
+    transform-origin: center;
+}
+
+.circular-chart-svg .circle-bg {
+    stroke: #eee;
+    stroke-width: 2.5;
+}
+
+.circular-chart-svg .circle {
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1.5s ease-out forwards;
+}
+
+.high-performance {
+    stroke: var(--success-color);
+    stroke-width: 3;
+}
+
+.mid-performance {
+    stroke: var(--warning-color);
+    stroke-width: 3;
+}
+
+.low-performance {
+    stroke: var(--danger-color);
+    stroke-width: 3;
+}
+
+.circular-chart-svg .percentage-label {
+    font-size: 0.5em;
+    text-anchor: middle;
+    fill: var(--dark-color);
+    font-weight: bold;
+    transform: rotate(90deg);
+    transform-origin: center;
+}
+
+.circular-chart-svg .percentage-text {
+    font-size: 0.25em;
+    text-anchor: middle;
+    fill: #777;
+    transform: rotate(90deg);
+    transform-origin: center;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+/* Score display */
+.score-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.score-achieved {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+}
+
+.score-divider {
+    font-size: 1.5rem;
+    color: #aaa;
+}
+
+.score-possible {
+    font-size: 1.5rem;
+    color: #888;
+}
+
+/* Stats row */
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* Performance table styling */
+.performance-table thead {
+    background-color: #f2f4f8;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.performance-table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding: 1rem 0.75rem;
+    position: relative;
+}
+
+.performance-table thead th:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.performance-table thead th:hover:after {
+    transform: scaleX(1);
+}
+
+.sort-icon {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sort-icon:hover {
+    color: var(--secondary-color) !important;
+}
+
+.performance-table tbody tr {
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    transition: all 0.2s ease;
+}
+
+.performance-table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.sticky-column {
+    position: sticky;
+    left: 0;
+    background-color: white;
+    z-index: 10;
+    box-shadow: 4px 0 8px rgba(0,0,0,0.03);
+}
+
+.highlight-row {
+    background-color: rgba(39, 174, 96, 0.08);
+}
+
+.highlight-row:hover {
+    background-color: rgba(39, 174, 96, 0.12) !important;
+}
+
+.employee-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.current-user {
+    color: var(--primary-color);
+}
+
+/* Score pill */
+.score-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(52, 152, 219, 0.2);
+    border-radius: 20px;
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+/* Badge styling */
+.rank-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Light outline buttons */
+.btn-light-outline {
+    border-color: rgba(255,255,255,0.5);
+    color: white;
+}
+
+.btn-light-outline:hover {
+    background-color: rgba(255,255,255,0.15);
+}
+
+/* Legends */
+.legend-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.legend-marker {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.high-perf {
+    background-color: var(--success-color);
+}
+
+.mid-perf {
+    background-color: var(--warning-color);
+}
+
+.low-perf {
+    background-color: var(--danger-color);
+}
+
+.legend-text {
+    font-size: 0.75rem;
+}
+
+/* Pagination controls */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.pagination-controls .btn.active {
+    background-color: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+}
+
+/* Filter tags styling */
+.filter-tags {
+    padding: 0.5rem 0;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    background-color: #f0f4f8;
+    border: 1px solid #e0e7ee;
+    font-weight: normal;
+    transition: all 0.2s ease;
+}
+
+.filter-tag .remove-filter {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+}
+
+.filter-tag .remove-filter:hover {
+    opacity: 1;
+    color: var(--danger-color);
+}
+
+.filter-tag:hover {
+    background-color: #e8eef5;
+}
+
+/* Filter controls styling */
+.filter-controls {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.filter-controls:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Table row transition for filtering */
+.performance-table tbody tr {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.performance-table tbody tr.hidden {
+    display: none;
+}
+
+.performance-table tbody tr.filtered-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    position: absolute;
+    pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .performance-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .stats-row {
+        flex-wrap: wrap;
+    }
+    
+    .stat-item {
+        min-width: 33%;
+        margin-bottom: 1rem;
+    }
+    
+    .header-actions {
+        display: none;
+    }
+    
+    .legend-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .filter-controls .row {
+        flex-direction: column;
+    }
+    
+    .filter-controls .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+
+{% endblock %}

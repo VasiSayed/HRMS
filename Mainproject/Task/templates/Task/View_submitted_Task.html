@@ -366,7 +366,7 @@ body {
         </div>
         {% endif %}
         
-        {% if comments %}
+        {% if task.comments %}
         <div class="task-description">
           <h3 class="task-description-title flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#304156" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -381,20 +381,31 @@ body {
         {% endif %}
       </div>
 
+
+
+    
+<form id="taskForm">
+    <label>Rate the Task:</label><br>
+    <input type="radio" name="rating" value="3" required> Bad <br>
+    <input type="radio" name="rating" value="5" required> Average <br>
+    <input type="radio" name="rating" value="8" required> Good <br>
+    <input type="radio" name="rating" value="10" required> Very Good <br>
+
       <!-- Action Buttons -->
       {% if request.user.role.RoleName == "Manager" and task.status == 'pending' %}
       <div class="task-buttons">
-        <a href="{% url 'ap_task' task.id %}" class="btn btn-primary">
-          <i class="fas fa-check mr-2"></i>
-          Approve Submission
+        <a id="approveBtn" class="btn btn-primary">
+            <i class="fas fa-check mr-2"></i> Approve Task
         </a>
-        <a href="{% url 'rj_task' task.id %}" class="btn btn-outline">
-          <i class="fas fa-times mr-2"></i>
-          Request Changes
+
+        <a id="rejectBtn" class="btn btn-outline">
+            <i class="fas fa-times mr-2"></i> Reject Task
         </a>
-      </div>
+    </div>
       {% endif %}
     </div>
+
+  </form>
     
     <!-- Task Footer -->
     <div class="task-footer">
@@ -402,4 +413,45 @@ body {
     </div>
   </div>
 </div>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const approveBtn = document.getElementById("approveBtn");
+        const rejectBtn = document.getElementById("rejectBtn");
+        const radios = document.querySelectorAll("input[name='rating']");
+
+        function getSelectedRating() {
+            let selectedRating = null;
+            radios.forEach(radio => {
+                if (radio.checked) {
+                    selectedRating = radio.value;
+                }
+            });
+            return selectedRating;
+        }
+
+        approveBtn.addEventListener("click", function(event) {
+            event.preventDefault();
+            const rating = getSelectedRating();
+            if (rating) {
+                window.location.href = "{% url 'ap_task' task.id 0 %}".replace("/0/", "/" + rating + "/");
+            } else {
+                alert("Please select a rating before approving.");
+            }
+        });
+
+        rejectBtn.addEventListener("click", function(event) {
+            event.preventDefault();
+            const rating = getSelectedRating();
+            if (rating) {
+                window.location.href = "{% url 'rj_task' task.id 0 %}".replace("/0/", "/" + rating + "/");
+            } else {
+                alert("Please select a rating before rejecting.");
+            }
+        });
+    });
+</script>
+
 {% endblock %}

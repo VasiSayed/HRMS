@@ -4,6 +4,14 @@ from users.models import User
 from django.utils import timezone
 # Create your models here. 
 
+Rating_choices = [
+        (3, 'Bad'),
+        (5, 'Average'),
+        (8, 'Good'),
+        (10, 'Very Good'),
+    ]
+
+
 class Team(models.Model):
     Name=models.CharField(max_length=100,unique=True,null=False,blank=False)
     Description=models.CharField(max_length=200,default=" ",null=False,blank=False)
@@ -19,8 +27,8 @@ class Team(models.Model):
 class Team_Member(models.Model):
     Team=models.ForeignKey(Team,on_delete=models.DO_NOTHING)
     Emp=models.ForeignKey(User,on_delete=models.DO_NOTHING)
-    active=models.BooleanField(default=True)
     joined_on=models.DateTimeField(default=timezone.now)
+    active=models.BooleanField(default=True)
 
     def __str__(self):
         return f"{Team.Name} Member :- {self.Emp.username}"
@@ -52,6 +60,8 @@ class SubTaskSubmit(models.Model):
     submitted_on=models.DateTimeField(default=timezone.now)
     comments=models.CharField(max_length=100,null=True,blank=True)
     status=models.CharField(max_length=20,choices=[("Approved","Approved"),("Rejected","Rejected"),("pending","pending")],default="pending")
+    score = models.IntegerField(null=True,blank=False,choices=Rating_choices)
+
     
     def __str__(self):
         return f" Team Task Submited Team:-{self.subtask.Team.Name} submited by: {self.emp} "

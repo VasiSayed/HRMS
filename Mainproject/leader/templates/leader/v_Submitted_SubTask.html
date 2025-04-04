@@ -99,26 +99,67 @@
 
                 <!-- Action Buttons -->
                  {% if request.user.role.RoleName == "Team Leader" and task.status == 'pending' %}
-                <div class="flex gap-4 mb-8">
-                    <a href="{% url 'ApprovesubTask' task.id %}" 
-                       class="flex-1 text-center px-6 py-2.5 rounded-lg border transition-all duration-200 
-                              text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100
-                              flex items-center justify-center">
-                        <i class="fas fa-check mr-2"></i>
-                        Approve Submission
-                    </a>
-                    <a href="{% url 'RejectsubTask' task.id %}"
-                       class="flex-1 text-center px-6 py-2.5 rounded-lg border transition-all duration-200
-                              text-rose-600 border-rose-200 bg-rose-50 hover:bg-rose-100
-                              flex items-center justify-center">
-                        <i class="fas fa-times mr-2"></i>
-                        Request Changes
-                    </a>
-                </div>
+
+                 <form id="taskForm">
+                        <label>Rate the Task:</label><br>
+                        <input type="radio" name="rating" value="3" required> Bad <br>
+                        <input type="radio" name="rating" value="5" required> Average <br>
+                        <input type="radio" name="rating" value="8" required> Good <br>
+                        <input type="radio" name="rating" value="10" required> Very Good <br>
+
+
+                        <div class="task-buttons">
+                            <a id="approveBtn" class="btn btn-primary">
+                                <i class="fas fa-check mr-2"></i> Approve Task
+                            </a>
+
+                            <a id="rejectBtn" class="btn btn-outline">
+                                <i class="fas fa-times mr-2"></i> Reject Task
+                            </a>
+                        </div>
+                    </form>
                 {% endif %}
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const approveBtn = document.getElementById("approveBtn");
+        const rejectBtn = document.getElementById("rejectBtn");
+        const radios = document.querySelectorAll("input[name='rating']");
+
+        function getSelectedRating() {
+            let selectedRating = null;
+            radios.forEach(radio => {
+                if (radio.checked) {
+                    selectedRating = radio.value;
+                }
+            });
+            return selectedRating;
+        }
+
+        approveBtn.addEventListener("click", function(event) {
+            event.preventDefault();
+            const rating = getSelectedRating();
+            if (rating) {
+                window.location.href = "{% url 'ApprovesubTask' task.id 0 %}".replace("/0/", "/" + rating + "/");
+            } else {
+                alert("Please select a rating before approving.");
+            }
+        });
+
+        rejectBtn.addEventListener("click", function(event) {
+            event.preventDefault();
+            const rating = getSelectedRating();
+            if (rating) {
+                window.location.href = "{% url 'RejectsubTask' task.id 0 %}".replace("/0/", "/" + rating + "/");
+            } else {
+                alert("Please select a rating before rejecting.");
+            }
+        });
+    });
+</script>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}

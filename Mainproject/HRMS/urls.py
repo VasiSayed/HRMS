@@ -31,6 +31,7 @@ urlpatterns = [
     path('Task/',include('Task.urls')),
     path('leader/',include('leader.urls')),
     path('attendence/',include('attendance.urls')),
+    path('performance/',include('performance.urls')),
     # path('testing/',testing_view,name='helghj'),
 ]
 

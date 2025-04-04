@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'leader',
     'attendance',
     'django_extensions',
+    'performance',
 ]
 
 
