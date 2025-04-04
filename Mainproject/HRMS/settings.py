@@ -88,10 +88,25 @@ WSGI_APPLICATION = 'HRMS.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'VibgyorHRMS',  # Database name from my.cnf
+        'USER': 'root',  # MySQL username
+        'PASSWORD': 'root',  # MySQL password
+        'HOST': 'localhost',  # Use '127.0.0.1' if 'localhost' fails
+        'PORT': '3306',  # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
