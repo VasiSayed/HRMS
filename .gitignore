@@ -1,9 +1,3 @@
 env/
-db.sqlite3
-__pycache__/
-*.pyc
-*.pyo
-media/
-staticfiles/
-*.log
+venv/
 Mainproject/data.json
