@@ -261,6 +261,8 @@ select#year option {
 {% endblock %}
 
 {% block content %}
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <div class="container-fluid dashboard-container">
     {% if request.user.is_authenticated %}
@@ -273,11 +275,48 @@ select#year option {
                         <div class="d-flex">  
                             {% if request.user.role.RoleName == "Manager" or  request.user.role.RoleName == "admin" %}
                             <div class="dropdown me-2">
-
+                            {% if yearrr %}
                             <select name="year" id="year" style="background-color: black;   ">
-                                <option value="2025">2025</option>
-                                <option value="2024">2024</option>
+                                {% for i in yearrr %}
+                                    <option value="{{i}}">{{i}}</option>
+                                {% endfor %}
                             </select>
+                            {% endif %}
+                        {% if request.user.role.RoleName == 'Manager'  %}
+                            <button class="btn btn-sm btn-filter btn-outline-light dropdown-toggle" type="button" id="monthFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar-alt me-1"></i> Select Month
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="monthFilterDropdown">
+                                {% for month in months %}
+                                    <li>
+                                        <a class="dropdown-item month-link" data-month="{{ month }}" 
+                                        {% if dpid %} 
+                                        href="{% url 'MonthlyAvgbydept' 2025 month dpid %}"
+                                        {% else %}
+                                        href="{% url 'MonthlyAvg' 2025 month %}"
+                                        {% endif %}>
+                                            {% if month == 1 %} January
+                                            {% elif month == 2 %} February
+                                            {% elif month == 3 %} March
+                                            {% elif month == 4 %} April
+                                            {% elif month == 5 %} May
+                                            {% elif month == 6 %} June
+                                            {% elif month == 7 %} July
+                                            {% elif month == 8 %} August
+                                            {% elif month == 9 %} September
+                                            {% elif month == 10 %} October
+                                            {% elif month == 11 %} November
+                                            {% elif month == 12 %} December
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if request.user.role.RoleName == 'admin'  %}
+                            {% if dpid %} 
 
                             <button class="btn btn-sm btn-filter btn-outline-light dropdown-toggle" type="button" id="monthFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-calendar-alt me-1"></i> Select Month
@@ -309,6 +348,9 @@ select#year option {
                                     </li>
                                 {% endfor %}
                             </ul>
+                            {% endif %}
+                        {% endif %}
+
                             </div>
                             {% endif %}
                         </div>

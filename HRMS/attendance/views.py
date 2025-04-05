@@ -203,6 +203,7 @@ def AttendanceDashBoard(request):
         late_emp = Attendance.objects.filter(Remark='Late',emp__manager=request.user,date=date.today()).count()
         Half_Day_emp= Attendance.objects.filter(status='Half day',emp__manager=request.user,date=date.today()).count()
         months = Attendance.objects.values_list('date__month', flat=True).distinct()
+        year=Attendance.objects.values_list('date__year',flat=True).distinct()
         lpendng=Leave.objects.filter(emp__manager=request.user,status='Pending').count()
         approved_leave_emp = Leave.objects.filter(emp__manager=request.user, status='Approved', date_from__lte=today, date_to__gte=today).values_list('emp', flat=True)
         absent_employees = User.objects.filter(manager=request.user).exclude(id__in=Attendance.objects.filter(emp__manager=request.user, date=today).values_list('emp', flat=True))
@@ -218,23 +219,25 @@ def AttendanceDashBoard(request):
             'percentage_present':(Present_emp/Total_emp)*100,
             'months':months,
             'leavePen':lpendng,
-            'abestn_no_notice':absent_without_notice
+            'abestn_no_notice':absent_without_notice,
+            'yearrr':year
+
         }
         return render(request,'attendance/dashboard.html',context)
     
-
     if request.user.role.RoleName=="admin":
         Total_emp=User.objects.all().exclude(role__RoleName='admin').count()
         Present_emp = Attendance.objects.filter(status='Present',date=date.today()).count()
         late_emp = Attendance.objects.filter(Remark='Late',date=date.today()).count()
         Half_Day_emp= Attendance.objects.filter(status='Half day',date=date.today()).count()
-        dept=Department.objects.values_list('dept_name',flat=True)
+        year=Attendance.objects.values_list('date__year',flat=True).distinct()
+        dept=Department.objects.values_list('dept_name',flat=True).distinct()
         months = Attendance.objects.values_list('date__month', flat=True).distinct()
         Mlpendng=Leave.objects.filter(emp__role__RoleName='Manager',status='Pending').count()
         approved_leave_emp = Leave.objects.filter(status='Approved', date_from__lte=today, date_to__gte=today).values_list('emp', flat=True)
         absent_employees = User.objects.exclude(id__in=Attendance.objects.filter(date=today).values_list('emp', flat=True))
         absent_without_notice = absent_employees.exclude(id__in=approved_leave_emp)
-
+        print('hiii',dept)
         context={
             'total':Total_emp,
             'Present_Emp' :Present_emp,
@@ -245,7 +248,8 @@ def AttendanceDashBoard(request):
             'dept':dept,
             'months':months,
             'mlEvae':Mlpendng,
-            'abestn_no_notice':absent_without_notice
+            'abestn_no_notice':absent_without_notice,
+            'yearrr':year
 
         }
         return render(request,'attendance/dashboard.html',context)
@@ -253,6 +257,8 @@ def AttendanceDashBoard(request):
     messages.error(request,'Not Authorized')
     return redirect('home')
     
+
+
 
 def attendenceInfo(request,str):
     if request.user.role.RoleName=="Manager":
@@ -325,7 +331,7 @@ def monthlyAttendace(request,year,month):
             'month':month,
         }
         return render(request,'attendance/AvgAttendance.html',context)
-    messages.error(request,'Manager can acces this page')
+    messages.error(request,'admin can acces this page')
     return redirect('home')
 
 
@@ -363,6 +369,7 @@ def EmpmonthlyAtten(request,year,month,id):
 
 def dashboardbyDept(request,dept):
     if request.user.role.RoleName == "admin":
+        today=datetime.today()
         try:
             dept=Department.objects.get(dept_name=dept)
             Total_emp=User.objects.filter(department=dept).count()
@@ -371,6 +378,9 @@ def dashboardbyDept(request,dept):
             Half_Day_emp= Attendance.objects.filter(status='Half day',emp__department=dept,date=date.today()).count()
             dept1=Department.objects.values_list('dept_name',flat=True).values_list('dept_name',flat=True)
             months = Attendance.objects.values_list('date__month', flat=True).distinct()
+            approved_leave_emp = Leave.objects.filter(status='Approved', date_from__lte=today, date_to__gte=today).values_list('emp', flat=True)
+            absent_employees = User.objects.filter(department__dept_name=dept).exclude(id__in=Attendance.objects.filter(emp__department__dept_name=dept, date=today).values_list('emp', flat=True))
+            absent_without_notice = absent_employees.exclude(id__in=approved_leave_emp)
             for i in dept1:
                 for j in i:
                     print(j)
@@ -385,6 +395,7 @@ def dashboardbyDept(request,dept):
                 'dpid':dept.dept_id,
                 'dpname':dept.dept_name,
                 'dept':dept1,
+                'abestn_no_notice':absent_without_notice,
             }
             return render(request,'attendance/dashboard.html',context)
     
